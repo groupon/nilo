@@ -1,0 +1,27 @@
+{
+  "name": "quinn-inject",
+  "version": "1.0.0",
+  "description": "Dependency Injection for quinn",
+  "main": "inject.js",
+  "scripts": {
+    "test": "jshint inject.js test && mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quinnjs/quinn-inject.git"
+  },
+  "keywords": [
+    "quinn",
+    "di"
+  ],
+  "author": "Jan Krems <jan.krems@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/quinnjs/quinn-inject/issues"
+  },
+  "homepage": "https://github.com/quinnjs/quinn-inject",
+  "devDependencies": {
+    "jshint": "^2.5.6",
+    "mocha": "^2.0.1"
+  }
+}
