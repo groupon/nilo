@@ -3,16 +3,22 @@
 var http = require('http');
 
 var express = require('express');
-var controller = require('quinn-controller/express');
+var controller = require('quinn-controller');
 var respond = require('quinn-respond');
+var toExpress = require('quinn-express');
+var _ = require('lodash');
 
 var injectMiddleware = require('../middleware');
 
 var inject = require('./env.js');
 
+// APP SETUP
+
 var app = express();
 
 app.use(injectMiddleware(inject, 'request'));
+
+// CONTROLLER
 
 var PostsController = {
   show: inject.action(function(params, query, I18n) {
@@ -24,8 +30,13 @@ var PostsController = {
   })
 };
 
-var action = controller('posts', PostsController);
+// ROUTING
+
+var action = _.compose(toExpress, controller('posts', PostsController));
+
 app.get('/:postId', action('show'));
+
+// LISTEN
 
 var server = http.createServer(app);
 
