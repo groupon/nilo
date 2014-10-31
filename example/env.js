@@ -1,6 +1,6 @@
 'use strict';
 
-var createEnvironment = require('../lib/environment');
+var createEnvironment = require('../lib/inject');
 
 var inject = createEnvironment();
 
