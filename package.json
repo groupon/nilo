@@ -4,7 +4,7 @@
   "description": "Dependency Injection for quinn",
   "main": "lib/inject.js",
   "scripts": {
-    "test": "jshint lib middleware.js test && mocha"
+    "test": "jshint lib middleware.js test && mocha && node example/app"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "mocha": "^2.0.1",
     "quinn-controller": "^1.0.0",
     "quinn-express": "^1.0.0",
-    "quinn-respond": "^3.1.2"
+    "quinn-respond": "^3.2.0"
   },
   "dependencies": {
     "bluebird": "^2.3.6"
