@@ -31,7 +31,6 @@
     "quinn-respond": "^3.1.2"
   },
   "dependencies": {
-    "bluebird": "^2.3.6",
-    "continuation-local-storage": "^3.1.1"
+    "bluebird": "^2.3.6"
   }
 }
