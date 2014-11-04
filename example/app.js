@@ -35,6 +35,15 @@ var PostsController = {
   })
 };
 
+try {
+  PostsController.harmony = inject.action(require('./harmony-action'));
+} catch (err) {
+  if (/Unexpected token \*/.test(err.message))
+    console.log('Environment does not support generators');
+  else
+    throw err;
+}
+
 // TESTING
 
 var TestI18n = { translate: function(key) { return key; } };
@@ -64,6 +73,9 @@ app.get('/simple', toExpress(function(req, params) {
     .status(201);
 }));
 
+if (PostsController.harmony)
+  app.get('/harmony', action('harmony'));
+
 app.get('/:postId', action('show'));
 
 // LISTEN
@@ -71,8 +83,28 @@ app.get('/:postId', action('show'));
 var server = http.createServer(app);
 
 server.listen(process.env.PORT || 3000, function() {
-  var baseUrl = 'http://127.0.0.1:' + this.address().port + '/simple';
-  http.get(baseUrl, function(res) {
+  var baseUrl = 'http://127.0.0.1:' + this.address().port;
+
+  function done() {
+    console.log('Integration tested the response.');
+    server.close();
+  }
+
+  function testHarmony() {
+    http.get(baseUrl + '/harmony?x=foo&a=bar', function(res) {
+      assert.equal(200, res.statusCode);
+      res.setEncoding('utf8');
+      var buffer = '';
+      res.on('data', function(chunk) { buffer += chunk; });
+      res.on('end', function() {
+        var data = JSON.parse(buffer);
+        assert.deepEqual({ x: 'foo', a: 'bar' }, data);
+        done();
+      });
+    });
+  }
+
+  http.get(baseUrl + '/simple', function(res) {
     assert.equal(201, res.statusCode);
     assert.equal('1000', res.headers['x-fancy']);
     assert.equal('text/html; charset=utf-8', res.headers['content-type']);
@@ -82,8 +114,11 @@ server.listen(process.env.PORT || 3000, function() {
     res.on('end', function() {
       assert.include('<!DOCTYPE html>', buffer);
       assert.include('</html>\n', buffer);
-      console.log('Integration tested the response.');
-      server.close();
+      if (PostsController.harmony) {
+        testHarmony();
+      } else {
+        done();
+      }
     });
   });
 });

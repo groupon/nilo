@@ -4,7 +4,7 @@
   "description": "Dependency Injection for quinn",
   "main": "lib/inject.js",
   "scripts": {
-    "test": "jshint lib middleware.js test && mocha && node example/app"
+    "test": "jshint lib middleware.js test && mocha && node --harmony example/app"
   },
   "repository": {
     "type": "git",
