@@ -1,6 +1,6 @@
 {
   "name": "quinn-inject",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Dependency Injection for quinn",
   "main": "lib/inject.js",
   "scripts": {
