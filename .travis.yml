@@ -8,4 +8,4 @@ deploy:
     secure: WS9AYoqyeHUJBdN97VQjocsljong7Zm3XECF9xxLImCWUHAV/cnaGwxRuetuuEVNMjqi0mJph+9bE2chYeSWOXVLaVS++J4rLjrRN51U/5I26erlv0Wzr7VYL4qZOsTJTyNcHS6Xx/hK0yjTFoEcO/TMRnntPGfQ14ChHIDCe1M=
   on:
     tags: true
-    repo: quinnjs/quinn-inject
+    repo: quinnjs/nilo
