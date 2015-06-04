@@ -1,6 +1,6 @@
 {
   "name": "nilo",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Dependency Injection Based on Decorators",
   "main": "lib/inject.js",
   "scripts": {
