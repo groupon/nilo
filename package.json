@@ -1,25 +1,27 @@
 {
-  "name": "quinn-inject",
+  "name": "nilo",
   "version": "1.0.2",
-  "description": "Dependency Injection for quinn",
+  "description": "Dependency Injection Based on Decorators",
   "main": "lib/inject.js",
   "scripts": {
     "test": "jshint lib middleware.js test && mocha && node --harmony example/app"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/quinnjs/quinn-inject.git"
+    "url": "https://github.com/quinnjs/nilo.git"
   },
   "keywords": [
     "quinn",
+    "ioc",
+    "decorator",
     "di"
   ],
   "author": "Jan Krems <jan.krems@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/quinnjs/quinn-inject/issues"
+    "url": "https://github.com/quinnjs/nilo/issues"
   },
-  "homepage": "https://github.com/quinnjs/quinn-inject",
+  "homepage": "https://github.com/quinnjs/nilo",
   "devDependencies": {
     "assertive": "^1.4.0",
     "express": "^4.10.1",
