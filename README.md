@@ -5,32 +5,38 @@
 > as in creatio ex nihilo, meaning "creation out of nothing"—chiefly in philosophical
 > or theological contexts, but also occurs in other fields.
 
-A pretty stupid DI framework that just hides itself using random properties
-on an object that needs to be passed around explicitly.
-
-Example with express + quinn + magic:
+A basic DI framework with support for decorators.
 
 ```js
-var express = require('express');
-var toExpress = require('quinn/express');
-var respond = require('quinn/respond');
-var inject = require('nilo')();
+import { Provides, Inject, createGraph } from 'nilo';
 
-inject.getRootScope()
-  .register('x', function() { return 10; });
+class A { constructor(x) { this.x = x; } }
 
-inject.getScope('action')
-  .setArguments([ 'req', 'params' ])
-  .register('query', function(req) { return req.query; });
+@Inject('n')
+class B { constructor(n) { this.n = n; } }
 
-// Create express app
-var app = express();
-
-function *myHandler(params, x, query) {
-  var obj = loadFromDatabase(params.id);
-  return respond()
-    .json({ obj: yield obj, x: x, query: query });
+@Inject(A, B)
+class Dependent {
+  constructor(a, b) { this.answer = a.x + b.n; }
 }
 
-app.get('/my/:id', toExpress(inject.action(myHandler)));
+const graph = createGraph({
+  @Provides(A)
+  getA() { return new A(40); }
+
+  @Provides('n')
+  getNumber() { return 2; }
+});
+
+const rootScope = graph.createScope();
+console.log('The answer is %d.', rootScope.get(Dependent).answer);
+
+const extendedGraph = createGraph({
+  @Inject(Dependent, 'request')
+  @Provides('randomString')
+  getRandomString(d, request) { return `${d} ${request.url}`; }
+});
+const childScope = extendedGraph.createScope(rootScope)
+  .set('request', { url: '/users/me' });
+console.log(childScope.get('randomString'));
 ```
