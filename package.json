@@ -7,7 +7,8 @@
     "test": "tape test/*.js"
   },
   "files": [
-    "lib"
+    "lib",
+    "README.md"
   ],
   "repository": {
     "type": "git",
