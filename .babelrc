@@ -1,0 +1,12 @@
+{
+  "only": "test/*.es6",
+  "plugins": [ "angular2-annotations" ],
+  "whitelist": [
+    "es6.arrowFunctions",
+    "es6.classes",
+    "es6.modules",
+    "es7.decorators",
+    "flow",
+    "strict"
+  ]
+}

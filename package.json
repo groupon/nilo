@@ -4,7 +4,7 @@
   "description": "Dependency Injection Based on Decorators",
   "main": "lib/nilo.js",
   "scripts": {
-    "test": "tape test/*.js"
+    "test": "tape test/*.js && babel-node test/*.es6"
   },
   "files": [
     "lib",
@@ -28,6 +28,8 @@
   "homepage": "https://github.com/quinnjs/nilo",
   "devDependencies": {
     "babel": "^5.5.4",
+    "babel-plugin-angular2-annotations": "^1.1.0",
+    "reflect-metadata": "^0.1.0",
     "tape": "^4.0.0"
   },
   "dependencies": {
