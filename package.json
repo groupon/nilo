@@ -1,38 +1,69 @@
 {
   "name": "nilo",
   "version": "2.1.0",
-  "description": "Dependency Injection Based on Decorators",
+  "description": "A dependency injection toolset for building applications",
+  "license": "BSD-3-Clause",
   "main": "lib/nilo.js",
-  "scripts": {
-    "test": "tape test/*.js && babel-node test/*.es6"
-  },
-  "files": [
-    "lib",
-    "README.md"
-  ],
+  "homepage": "https://github.com/groupon/nilo",
   "repository": {
     "type": "git",
-    "url": "https://github.com/quinnjs/nilo.git"
+    "url": "https://github.com/groupon/nilo"
   },
-  "keywords": [
-    "quinn",
-    "ioc",
-    "decorator",
-    "di"
-  ],
-  "author": "Jan Krems <jan.krems@gmail.com>",
-  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/quinnjs/nilo/issues"
+    "url": "https://github.com/groupon/nilo/issues"
   },
-  "homepage": "https://github.com/quinnjs/nilo",
-  "devDependencies": {
-    "babel": "^5.5.4",
-    "babel-plugin-angular2-annotations": "^1.1.0",
-    "reflect-metadata": "^0.1.0",
-    "tape": "^4.0.0"
+  "scripts": {
+    "pretest": "eslint . && tsc",
+    "test": "mocha",
+    "posttest": "nlm verify"
+  },
+  "nlm": {
+    "license": {
+      "files": [
+        "lib"
+      ]
+    }
   },
   "dependencies": {
-    "footnote": "^1.1.0"
+    "commander": "^2.19.0",
+    "debug": "^4.1.1",
+    "esm": "^3.2.20",
+    "glob": "^7.1.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/chai-as-promised": "^7.1.0",
+    "@types/debug": "^4.1.2",
+    "@types/lodash": "^4.14.123",
+    "@types/mkdirp": "^0.5.2",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.11.0",
+    "@types/tmp": "0.0.34",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^5.1.0",
+    "eslint-config-groupon": "^7.2.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-mocha": "^5.1.0",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-prettier": "^2.6.2",
+    "lodash": "^4.17.11",
+    "mkdirp": "^0.5.1",
+    "mocha": "^6.0.2",
+    "nlm": "^3.0.0",
+    "prettier": "^1.6.1",
+    "tmp": "^0.1.0",
+    "typescript": "^3.3.4000"
+  },
+  "author": {
+    "name": "Groupon",
+    "email": "opensource@groupon.com"
+  },
+  "files": [
+    "*.js",
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }

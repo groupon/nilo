@@ -1,11 +1,13 @@
 language: node_js
 node_js:
-- iojs
+  - '8'
+  - '10'
 deploy:
-  provider: npm
-  email: jan.krems+quinnjs@gmail.com
-  api_key:
-    secure: WS9AYoqyeHUJBdN97VQjocsljong7Zm3XECF9xxLImCWUHAV/cnaGwxRuetuuEVNMjqi0mJph+9bE2chYeSWOXVLaVS++J4rLjrRN51U/5I26erlv0Wzr7VYL4qZOsTJTyNcHS6Xx/hK0yjTFoEcO/TMRnntPGfQ14ChHIDCe1M=
-  on:
-    tags: true
-    repo: quinnjs/nilo
+  - provider: script
+    script: ./node_modules/.bin/nlm release
+    skip_cleanup: true
+    'on':
+      branch: master
+      node: '10'
+before_install:
+  - npm i -g npm@^6
