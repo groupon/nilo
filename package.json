@@ -4,6 +4,7 @@
   "description": "A dependency injection toolset for building applications",
   "license": "BSD-3-Clause",
   "main": "lib/nilo.js",
+  "types": "lib/typedefs.d.ts",
   "homepage": "https://github.com/groupon/nilo",
   "repository": {
     "type": "git",

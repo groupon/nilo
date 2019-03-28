@@ -4,6 +4,10 @@ const { App, main } = require('../../');
 
 const app = new App(process.cwd(), __dirname);
 
+/**
+ * @param {string | number | undefined} value
+ * @returns {number}
+ */
 function toNumber(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) {
@@ -22,6 +26,9 @@ function toNumber(value) {
  * @param {Options} options
  */
 async function start(ctx, options) {
+  await ctx.initialize();
+  await ctx.configure();
+
   if (options.code) {
     return options.code;
   }
