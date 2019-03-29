@@ -1,3 +1,10 @@
+### 3.1.0
+
+* Expose types - **[@jkrems](https://github.com/jkrems)** [#5](https://github.com/groupon/nilo/pull/5)
+  - [`9383ded`](https://github.com/groupon/nilo/commit/9383dedad0538bbb29e3f45045ed4582db1e6efb) **feat:** Expose types
+  - [`9a3163d`](https://github.com/groupon/nilo/commit/9a3163d4118f575b0ed452cb3f003c2c70f3ead1) **style:** Cast on export instead of on import
+
+
 ### 3.0.0
 
 #### Breaking Changes
