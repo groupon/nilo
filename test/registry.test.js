@@ -18,7 +18,7 @@ function assertThrows(fn) {
   return error;
 }
 
-/** @typedef {import('../lib/registry/injector')} Injector */
+/** @typedef {import('../lib/typedefs').Injector} Injector */
 
 /**
  * @param {Error & { code: string }} err
