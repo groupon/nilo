@@ -1,5 +1,7 @@
 'use strict';
 
+const { inspect } = require('util');
+
 const assert = require('chai').assert;
 
 const Registry = require('../lib/registry');
@@ -60,6 +62,9 @@ describe('Registry', () => {
 
     beforeEach(() => {
       registry.request.setFactory('byReq', [], () => ({ byReq: true }));
+      registry.request.setFactory(Symbol('byReq'), null, () => ({
+        uniqueByReq: true,
+      }));
       registry.action.setFactory('byAction', [], () => ({ byAction: true }));
     });
 
@@ -71,7 +76,10 @@ describe('Registry', () => {
       assert.deepEqual(['get', 'keys'], Object.keys(provider));
       assert.deepEqual(
         ['action', 'byAction', 'byReq', 'request', 'response'],
-        provider.keys().sort()
+        provider
+          .keys()
+          .filter(k => typeof k === 'string')
+          .sort()
       );
     });
 
@@ -94,6 +102,19 @@ describe('Registry', () => {
       assert.notEqual(second.get('byAction'), first.get('byAction'));
       // But the objects are structurally the same
       assert.deepEqual(second.get('byAction'), first.get('byAction'));
+    });
+
+    it('can be inspected', () => {
+      const injector = registry.getActionInjector(req, res, action);
+      assert.equal(
+        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq) }',
+        inspect(injector)
+      );
+      const provider = injector.getProvider();
+      assert.equal(
+        'Provider { Injector<action> { action, byAction, request, response, byReq, Symbol(byReq) } }',
+        inspect(provider)
+      );
     });
   });
 

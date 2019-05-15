@@ -1,13 +1,13 @@
 import { IncomingMessage, ServerResponse } from 'http';
 
 type DependencyDescriptor = {
-  key: string,
+  key: string | symbol,
   index?: string,
   optional?: boolean,
   multiValued?: boolean,
 };
 
-type DependencyQuery = DependencyDescriptor | string;
+type DependencyQuery = DependencyDescriptor | string | symbol;
 
 type PackageJSON = {
   name: string;
@@ -31,21 +31,21 @@ declare class Scope {
 
   readonly name: string;
 
-  setFactory<T>(query: string, deps: string[] | null, factory: (deps?: any) => T): void;
+  setFactory<T>(query: string | symbol, deps: string[] | null, factory: (deps?: any) => T): void;
 
   createInjector(init: Map<any, any>, parent?: Injector): Injector;
   getCachedInjector(target: object): Injector;
   getCachedInjector(target: object, init: Map<any, any>, parent: Injector): Injector;
-  create<T>(key: string, injector: Injector): T;
+  create<T>(key: string | symbol, injector: Injector): T;
 
-  has(key: string): boolean;
-  getKeys(): string[];
-  getOwnMultiValuedProviders(key: string): MultiValuedDependencyProvider;
+  has(key: string | symbol): boolean;
+  getKeys(): (string | symbol)[];
+  getOwnMultiValuedProviders(key: string | symbol): MultiValuedDependencyProvider;
 }
 
 type Provider = {
   get(query: DependencyQuery): unknown;
-  keys(): string[];
+  keys(): (string | symbol)[];
 
   [key: string]: unknown;
 };
