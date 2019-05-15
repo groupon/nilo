@@ -1,3 +1,9 @@
+### 3.2.0
+
+* Support symbols and support inspection - **[@jkrems](https://github.com/jkrems)** [#6](https://github.com/groupon/nilo/pull/6)
+  - [`2f8e1de`](https://github.com/groupon/nilo/commit/2f8e1de38d2627e3d663ceea094722941980616a) **feat:** Support symbols and support inspection
+
+
 ### 3.1.0
 
 * Expose types - **[@jkrems](https://github.com/jkrems)** [#5](https://github.com/groupon/nilo/pull/5)
