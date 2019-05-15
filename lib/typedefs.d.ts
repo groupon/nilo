@@ -26,6 +26,25 @@ type SimpleDependencyProvider = (injector: Injector) => unknown;
 type MultiValuedDependencyProvider = Map<string, SimpleDependencyProvider>;
 type DependencyProvider = SimpleDependencyProvider | MultiValuedDependencyProvider;
 
+type SimpleProviderNode = {
+  key: string | symbol,
+  multiValued: false,
+};
+
+type MultiValuedProviderNode = {
+  key: string | symbol,
+  multiValued: true,
+  indices: Map<string, SimpleProviderNode>,
+};
+
+type ProviderNode = SimpleProviderNode | MultiValuedProviderNode;
+
+type ScopeNode = {
+  name: string,
+  providers: Map<string | symbol, ProviderNode>,
+  children: ScopeNode[],
+};
+
 declare class Scope {
   constructor(name: string);
 
@@ -41,6 +60,8 @@ declare class Scope {
   has(key: string | symbol): boolean;
   getKeys(): (string | symbol)[];
   getOwnMultiValuedProviders(key: string | symbol): MultiValuedDependencyProvider;
+
+  getProviderNodes(): Map<string | symbol, ProviderNode>;
 }
 
 type Provider = {
@@ -87,6 +108,8 @@ export class Registry {
   getSingletonInjector(): Injector;
   getRequestInjector(request: IncomingMessage, response: ServerResponse): Injector;
   getActionInjector(request: IncomingMessage, response: ServerResponse, action: any): Injector;
+
+  getProviderGraph(): ScopeNode;
 }
 
 export function main(app: App, defaultCommand?: string, argv?: string[]): Promise<void>;

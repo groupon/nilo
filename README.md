@@ -151,6 +151,12 @@ each assuming that the resulting dependency is called `x`:
   When providing a multi-valued dependency, this form has to be used.
   Descriptor: `{ key: 'x', multiValued: true, index: 'y' }`.
 
+#### `registry.getProviderGraph()`
+
+Returns a structured object with information about all registered providers,
+where they have been registered, and what their dependencies are.
+This data can be used to provide inspection and other developer tooling.
+
 #### `registry.getSingletonInjector()`
 
 Creates an `Injector` for the `singleton` scope.
