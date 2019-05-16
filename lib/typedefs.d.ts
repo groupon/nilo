@@ -112,4 +112,11 @@ export class Registry {
   getProviderGraph(): ScopeNode;
 }
 
+type CommandConfig<OptionsType> = {
+  name: string;
+  description: string;
+  init: (cmd: import('commander').Command) => void;
+  action: (app: App, options: OptionsType, ...args: any[]) => Promise<number | void>;
+};
+
 export function main(app: App, defaultCommand?: string, argv?: string[]): Promise<void>;
