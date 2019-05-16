@@ -1,3 +1,10 @@
+### 3.3.0
+
+* Expose object-graph info - **[@jkrems](https://github.com/jkrems)** [#7](https://github.com/groupon/nilo/pull/7)
+  - [`71583bb`](https://github.com/groupon/nilo/commit/71583bbf0f7c6806e54b04bacdf9043721d13595) **feat:** Expose object-graph info
+  - [`81c19d6`](https://github.com/groupon/nilo/commit/81c19d60fcd10bab25833f6e3ffe249a485ef23b) **feat:** Add example CLI command for provider info
+
+
 ### 3.2.0
 
 * Support symbols and support inspection - **[@jkrems](https://github.com/jkrems)** [#6](https://github.com/groupon/nilo/pull/6)
