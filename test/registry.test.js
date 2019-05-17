@@ -60,7 +60,11 @@ describe('Registry', () => {
     const res = /** @type {any} */ ({});
     const action = /** @type {any} */ ({});
 
+    const CONST_VALUE = { constValue: true };
+
     beforeEach(() => {
+      registry.singleton.setValue('constValue', CONST_VALUE);
+
       registry.request.setFactory('byReq', [], () => ({ byReq: true }));
       registry.request.setFactory(Symbol('byReq'), null, () => ({
         uniqueByReq: true,
@@ -75,11 +79,19 @@ describe('Registry', () => {
 
       assert.deepEqual(['get', 'keys'], Object.keys(provider));
       assert.deepEqual(
-        ['action', 'byAction', 'byReq', 'request', 'response'],
+        ['action', 'byAction', 'byReq', 'constValue', 'request', 'response'],
         provider
           .keys()
           .filter(k => typeof k === 'string')
           .sort()
+      );
+    });
+
+    it('has a short-hand for setting a constant value', () => {
+      registry.singleton.has('constValue');
+      assert.equal(
+        registry.getSingletonInjector().get('constValue'),
+        CONST_VALUE
       );
     });
 
@@ -107,12 +119,12 @@ describe('Registry', () => {
     it('can be inspected', () => {
       const injector = registry.getActionInjector(req, res, action);
       assert.equal(
-        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq) }',
+        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }',
         inspect(injector)
       );
       const provider = injector.getProvider();
       assert.equal(
-        'Provider { Injector<action> { action, byAction, request, response, byReq, Symbol(byReq) } }',
+        'Provider { Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue } }',
         inspect(provider)
       );
     });

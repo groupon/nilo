@@ -231,6 +231,11 @@ registry.singleton.setFactory(
 registry.singleton.setFactory('pid', null, () => process.pid);
 ```
 
+#### `scope.setValue(key, value)`
+
+A convenience method for when a factory would always return the same value,
+especially handy for things in the `singleton` scope.
+
 ### `main(app, defaultCommand = 'start', argv = process.argv)`
 
 1. Run `app.initialize()`.

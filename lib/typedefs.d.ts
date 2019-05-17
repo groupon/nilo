@@ -51,6 +51,7 @@ declare class Scope {
   readonly name: string;
 
   setFactory<T>(query: string | symbol, deps: string[] | null, factory: (deps?: any) => T): void;
+  setValue<T>(query: string | symbol, value: T): void;
 
   createInjector(init: Map<any, any>, parent?: Injector): Injector;
   getCachedInjector(target: object): Injector;
