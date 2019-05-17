@@ -1,3 +1,9 @@
+### 3.4.0
+
+* Convenience API to set an instance - **[@jkrems](https://github.com/jkrems)** [#8](https://github.com/groupon/nilo/pull/8)
+  - [`ee9b56a`](https://github.com/groupon/nilo/commit/ee9b56a30de7de62f5fed566b32e757df10f9f49) **feat:** Convenience API to set an instance
+
+
 ### 3.3.0
 
 * Expose object-graph info - **[@jkrems](https://github.com/jkrems)** [#7](https://github.com/groupon/nilo/pull/7)
