@@ -134,8 +134,8 @@ A set of three scopes, in order of nesting:
 #### `DependencyQuery`
 
 A dependency query is either a string or a `DependencyDescriptor` object.
-They are used both when asking for a dependency (*ask for*) and when providing one (*provide*).
-The following kinds of dependency queries are recognized,
+They are used both when asking for a dependency (*ask for*) and when providing
+one (*provide*). The following kinds of dependency queries are recognized,
 each assuming that the resulting dependency is called `x`:
 
 * `x`: A required dependency (*provide* or *ask for*).
@@ -175,6 +175,38 @@ based on the `request` injector for the given `request` object.
 In addition to `'request'` and `'response`',
 `'action'` will be as a dependency.
 It will always return a new injector.
+
+For testing or trivial uses, you may omit all of the arguments to be given
+empty default values.
+
+#### `Registry.from(([scope, name, value] | (registry) => void)[]): Registry`
+
+Sometimes you might wish to create a registry from scratch, all-at-once,
+particularly when testing.  In this case, you may call the static method
+`Registry.from()`, passing it an array which contains items, each of which
+is either:
+
+* an tuple specifying a static entry on the specified `scope`
+* a function which accepts the `registry` being constructed and makes whatever
+    calls on it it likes
+
+This lets you do something like this:
+
+```js
+const deps = Registry.from([
+  ['singleton', 'x', 42],
+  ['request', 'y', 88],
+  require('../one/object-graph'),
+  require('../another/object-graph'),
+]).getActionInjector().getProvider();
+// ^ this is a slightly neater way of doing something like:
+const reg = new Registry();
+reg.singleton.setValue('x', 42);
+reg.request.setValue('y', 42);
+require('../one/object-graph')(reg);
+require('../another/object-graph')(reg);
+const deps = reg.getActionInjector().getProvider();
+```
 
 #### `injector.get(key)`
 
