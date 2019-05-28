@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = (/** @type {import('../../../../').Registry} */ registry) => {
-  registry.singleton.setFactory('base', null, () => 21);
+  registry.singleton.setValue('base', 21);
 
-  registry.request.setFactory('factor', null, () => 2);
+  registry.request.setValue('factor', 2);
 
   registry.action.setFactory(
     'answer',
@@ -11,5 +11,5 @@ module.exports = (/** @type {import('../../../../').Registry} */ registry) => {
     ({ base, factor }) => base * factor
   );
 
-  registry.singleton.setFactory('spoilers[answer]', null, () => 42);
+  registry.singleton.setValue('spoilers[answer]', 42);
 };

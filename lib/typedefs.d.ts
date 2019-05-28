@@ -101,14 +101,20 @@ export class Project {
   loadInterfaceFiles(basename: string): Promise<InterfaceFile[]>;
 }
 
+export type ScopeEntry =
+  [ 'singleton' | 'request' | 'action', string, any ] |
+  ((registry: Registry) => void);
+
 export class Registry {
   readonly singleton: Scope;
   readonly request: Scope;
   readonly action: Scope;
 
+  static from(decls: ScopeEntry[]): Registry;
+
   getSingletonInjector(): Injector;
-  getRequestInjector(request: IncomingMessage, response: ServerResponse): Injector;
-  getActionInjector(request: IncomingMessage, response: ServerResponse, action: any): Injector;
+  getRequestInjector(request?: IncomingMessage, response?: ServerResponse): Injector;
+  getActionInjector(request?: IncomingMessage, response?: ServerResponse, action?: any): Injector;
 
   getProviderGraph(): ScopeNode;
 }

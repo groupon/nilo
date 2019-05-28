@@ -130,6 +130,19 @@ describe('Registry', () => {
     });
   });
 
+  describe('.from()', () => {
+    it('accepts static and dynamic scope entries', () => {
+      const deps = Registry.from([
+        ['singleton', 'blah', 99],
+        require('../examples/project/modules/answer/object-graph'),
+      ])
+        .getActionInjector()
+        .getProvider();
+      assert.equal(99, deps.blah);
+      assert.equal(42, deps.answer);
+    });
+  });
+
   describe('optional dependencies', () => {
     /** @type {Injector} */
     let singleton;
