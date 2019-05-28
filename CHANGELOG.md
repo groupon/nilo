@@ -1,3 +1,11 @@
+### 3.5.0
+
+* Registry.from() - **[@dbushong](https://github.com/dbushong)** [#9](https://github.com/groupon/nilo/pull/9)
+  - [`456f3db`](https://github.com/groupon/nilo/commit/456f3db8bbdb96090f2032860b7d1bdeba81b94f) **chore:** npm audit fix
+  - [`67bc6e9`](https://github.com/groupon/nilo/commit/67bc6e95bafb7176eaf70f621da26765a6d47b0b) **feat:** add Registry.from()
+  - [`bf3c2f2`](https://github.com/groupon/nilo/commit/bf3c2f29a5454566697458d866066fffc59e19ef) **refactor:** typofix variable name
+
+
 ### 3.4.0
 
 * Convenience API to set an instance - **[@jkrems](https://github.com/jkrems)** [#8](https://github.com/groupon/nilo/pull/8)
