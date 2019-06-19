@@ -1,3 +1,9 @@
+### 3.6.0
+
+* add `key` property to dep key errs - **[@dbushong](https://github.com/dbushong)** [#10](https://github.com/groupon/nilo/pull/10)
+  - [`2fa6230`](https://github.com/groupon/nilo/commit/2fa6230fb331b9e64fe9a34ec64c11cc4b268cb5) **feat:** add `key` property to dep key errs
+
+
 ### 3.5.0
 
 * Registry.from() - **[@dbushong](https://github.com/dbushong)** [#9](https://github.com/groupon/nilo/pull/9)
