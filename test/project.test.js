@@ -9,6 +9,7 @@ const mkdirp = require('mkdirp');
 const tmp = require('tmp');
 
 const { Project } = require('../');
+const { supportsESM } = require('../lib/esm');
 
 const FRAMEWORK_DIR = path.resolve(__dirname, '..');
 
@@ -34,7 +35,7 @@ describe('Project', () => {
     let project;
     /** @type {import('tmp').SynchrounousResult} */
     let tmpHandle;
-    before(() => {
+    before(async () => {
       tmpHandle = tmp.dirSync({ unsafeCleanup: true });
       project = new Project(tmpHandle.name, FRAMEWORK_DIR);
 
@@ -55,11 +56,13 @@ describe('Project', () => {
 
 module.exports = 'from lib1';
 `,
-        'modules/mod1/everywhere.mjs': `\
+      };
+      if (await supportsESM()) {
+        files['modules/mod1/everywhere.mjs'] = `\
 export default 'from mod1';
 export const namedExport = 'forwarded';
-`,
-      };
+`;
+      }
       const pkgNames = ['@some-scope/pkg1', 'dev-dep1', 'hoisted', 'pkg2'];
       for (const pkgName of pkgNames) {
         files[`node_modules/${pkgName}/everywhere.js`] = `\
@@ -83,11 +86,23 @@ module.exports = 'from ${pkgName}';
       if (tmpHandle) tmpHandle.removeCallback();
     });
 
+    afterEach(() => {
+      // @ts-ignore
+      project['_globCache'] = {};
+      // @ts-ignore
+      project['_globStatCache'] = {};
+    });
+
     /**
      * @param {{ specifier: string, [key: string]: any }[]} expected
      * @param {{ specifier: string, [key: string]: any }[]} actual
      */
     function sortedEqual(expected, actual) {
+      // native es modules return a namespace which isn't an ordinary object,
+      // which makes mocha barf on diffing
+      for (const a of actual) {
+        if (a.moduleNamespace) a.moduleNamespace = { ...a.moduleNamespace };
+      }
       assert.deepStrictEqual(
         sortBy(actual, 'specifier'),
         sortBy(expected, 'specifier')
@@ -108,15 +123,19 @@ module.exports = 'from ${pkgName}';
               moduleNamespace: { default: 'from lib1' },
               defaultExport: 'from lib1',
             },
-            {
-              specifier: './modules/mod1/everywhere.mjs',
-              group: 'mod1',
-              moduleNamespace: {
-                default: 'from mod1',
-                namedExport: 'forwarded',
-              },
-              defaultExport: 'from mod1',
-            },
+            ...((await supportsESM())
+              ? [
+                  {
+                    specifier: './modules/mod1/everywhere.mjs',
+                    group: 'mod1',
+                    moduleNamespace: {
+                      default: 'from mod1',
+                      namedExport: 'forwarded',
+                    },
+                    defaultExport: 'from mod1',
+                  },
+                ]
+              : []),
             {
               specifier: '@some-scope/pkg1/everywhere',
               group: 'pkg1',
@@ -139,15 +158,19 @@ module.exports = 'from ${pkgName}';
               moduleNamespace: { default: 'from lib1' },
               defaultExport: 'from lib1',
             },
-            {
-              specifier: './modules/mod1/everywhere.mjs',
-              group: 'mod1',
-              moduleNamespace: {
-                default: 'from mod1',
-                namedExport: 'forwarded',
-              },
-              defaultExport: 'from mod1',
-            },
+            ...((await supportsESM())
+              ? [
+                  {
+                    specifier: './modules/mod1/everywhere.mjs',
+                    group: 'mod1',
+                    moduleNamespace: {
+                      default: 'from mod1',
+                      namedExport: 'forwarded',
+                    },
+                    defaultExport: 'from mod1',
+                  },
+                ]
+              : []),
             {
               specifier: '@some-scope/pkg1/everywhere',
               group: 'pkg1',
