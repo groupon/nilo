@@ -1,3 +1,9 @@
+### 3.6.1
+
+* Bump lodash from 4.17.11 to 4.17.13 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#12](https://github.com/groupon/nilo/pull/12)
+  - [`563f18a`](https://github.com/groupon/nilo/commit/563f18af28ef4d5e40670caab0c9af9c0807d699) **chore:** Bump lodash from 4.17.11 to 4.17.13 - see: [4](- [Commits](https://github.com/lodash/lodash/compare/4)
+
+
 ### 3.6.0
 
 * add `key` property to dep key errs - **[@dbushong](https://github.com/dbushong)** [#10](https://github.com/groupon/nilo/pull/10)
