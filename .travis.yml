@@ -2,6 +2,13 @@ language: node_js
 node_js:
   - '8'
   - '10'
+env:
+  - NODE_OPTIONS=
+  - NODE_OPTIONS=--experimental-modules
+matrix:
+  exclude:
+  - node_js: '8'
+    env: NODE_OPTIONS=--experimental-modules
 deploy:
   - provider: script
     script: ./node_modules/.bin/nlm release
