@@ -1,3 +1,9 @@
+### 3.6.2
+
+* chore: Bump eslint-utils from 1.3.1 to 1.4.2 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#13](https://github.com/groupon/nilo/pull/13)
+  - [`11a5eed`](https://github.com/groupon/nilo/commit/11a5eed3a9c2557c197932e1551f2dc9e9c96d7b) **chore:** Bump eslint-utils from 1.3.1 to 1.4.2
+
+
 ### 3.6.1
 
 * Bump lodash from 4.17.11 to 4.17.13 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#12](https://github.com/groupon/nilo/pull/12)
