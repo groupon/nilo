@@ -58,6 +58,8 @@ module.exports = 'from lib1';
 `,
       };
       if (await supportsESM()) {
+        // eslint-disable-next-line no-console
+        console.log('      [esm support enabled]');
         files['modules/mod1/everywhere.mjs'] = `\
 export default 'from mod1';
 export const namedExport = 'forwarded';
