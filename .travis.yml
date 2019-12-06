@@ -11,7 +11,7 @@ matrix:
     env: NODE_OPTIONS=--experimental-modules
 deploy:
   - provider: script
-    script: ./node_modules/.bin/nlm release
+    script: npx nlm release
     skip_cleanup: true
     'on':
       branch: master
