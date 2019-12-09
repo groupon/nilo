@@ -122,6 +122,11 @@ This function returns an array with one entry for each interface file:
   relative to the app's root directory.
 * `group`: The directory the file was found in.
 
+Note that `.mjs` file support requires you to be using a version of node with
+builtin support for ES Modules.  Currently this is Node 10+ with
+the `--experimental-modules` flag.  Node 10.x seems to experience
+segfaults under certain conditions, so we recommend 12+.
+
 ### Registry
 
 A set of three scopes, in order of nesting:
