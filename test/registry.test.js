@@ -125,7 +125,7 @@ describe('Registry', () => {
       const provider = injector.getProvider();
       assert.equal(
         inspect(provider),
-        'Provider { Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue } }'
+        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }'
       );
     });
   });
