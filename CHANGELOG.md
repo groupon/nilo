@@ -1,3 +1,31 @@
+### 4.0.0
+
+#### Breaking Changes
+
+now if you want to use `.mjs` files, you should run
+with `NODE_OPTIONS=--experimental-modules` on Node 12.x+.  Also, native
+ES module loading is NOT compatible with coffeescript/register
+
+*See: [`cd5f669`](https://github.com/groupon/nilo/commit/cd5f669a1cdae3e43877d581e2e0dcf52a57ec98)*
+
+Node 8.x is no longer supported
+
+*See: [`d50a30b`](https://github.com/groupon/nilo/commit/d50a30bd0f5f4b7da4e96017b5aa937608cf973c)*
+
+#### Commits
+
+* stop using `esm` for ES module loading - **[@dbushong](https://github.com/dbushong)** [#14](https://github.com/groupon/nilo/pull/14)
+  - [`cd5f669`](https://github.com/groupon/nilo/commit/cd5f669a1cdae3e43877d581e2e0dcf52a57ec98) **refactor:** switch from standard-things/esm to native - see: [#11](https://github.com/groupon/nilo/issues/11)
+  - [`2c30ee4`](https://github.com/groupon/nilo/commit/2c30ee44a491e5bb667be0114f09b97cb486f4d1) **chore:** fix tests
+  - [`83e2d7d`](https://github.com/groupon/nilo/commit/83e2d7d9e741e75aaca6bf01870e8f81b1adf497) **chore:** cleanup travis.yml
+  - [`a447de8`](https://github.com/groupon/nilo/commit/a447de84f039c2c2c1dc80dbe254f09aec6a7b8f) **fix:** node8 support
+  - [`5608968`](https://github.com/groupon/nilo/commit/560896837e94b0a714e9efc830a06750b2000932) **docs:** clarify mjs support
+  - [`f4ef49c`](https://github.com/groupon/nilo/commit/f4ef49c44b94d60e1477eb2c1c8db05027a27ae4) **chore:** travis: cleanup run conditions
+  - [`66f1b17`](https://github.com/groupon/nilo/commit/66f1b179c4fcebb922dc63ba8a59493c3e98e920) **test:** fix order of assert.equal() calls
+  - [`d50a30b`](https://github.com/groupon/nilo/commit/d50a30bd0f5f4b7da4e96017b5aa937608cf973c) **fix:** make node 12 work by using createRequire
+  - [`9b5b703`](https://github.com/groupon/nilo/commit/9b5b7035c0218b33ff2909a65bf439adde2aaf40) **fix:** node12 inspection of provider - see: [26241](See: https://github.com/nodejs/node/pull/26241)
+
+
 ### 3.6.2
 
 * chore: Bump eslint-utils from 1.3.1 to 1.4.2 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#13](https://github.com/groupon/nilo/pull/13)

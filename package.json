@@ -1,6 +1,6 @@
 {
   "name": "nilo",
-  "version": "3.6.2",
+  "version": "4.0.0",
   "description": "A dependency injection toolset for building applications",
   "license": "BSD-3-Clause",
   "main": "lib/nilo.js",
