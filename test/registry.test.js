@@ -26,7 +26,7 @@ function assertThrows(fn) {
  * @param {Error & { code: string }} err
  */
 function assertInvalidError(err) {
-  assert.equal('INVALID_DEPENDENCY_KEY', err.code);
+  assert.equal(err.code, 'INVALID_DEPENDENCY_KEY');
 }
 
 /**
@@ -34,7 +34,7 @@ function assertInvalidError(err) {
  */
 function assertMissingError(err) {
   assert.include(err.message, 'Unknown dependency');
-  assert.equal('INVALID_DEPENDENCY_KEY', err.code);
+  assert.equal(err.code, 'INVALID_DEPENDENCY_KEY');
 }
 
 /**
@@ -42,7 +42,7 @@ function assertMissingError(err) {
  */
 function assertDuplicateError(err) {
   assert.include(err.message, 'already been registered');
-  assert.equal('DUPLICATE_DEPENDENCY_KEY', err.code);
+  assert.equal(err.code, 'DUPLICATE_DEPENDENCY_KEY');
 }
 
 describe('Registry', () => {
@@ -97,9 +97,9 @@ describe('Registry', () => {
 
     it('exposes built-ins', () => {
       const injector = registry.getActionInjector(req, res, action);
-      assert.equal(req, injector.get('request'));
-      assert.equal(res, injector.get('response'));
-      assert.equal(action, injector.get('action'));
+      assert.equal(injector.get('request'), req);
+      assert.equal(injector.get('response'), res);
+      assert.equal(injector.get('action'), action);
     });
 
     it('caches deps by request but not by action', () => {
@@ -119,13 +119,13 @@ describe('Registry', () => {
     it('can be inspected', () => {
       const injector = registry.getActionInjector(req, res, action);
       assert.equal(
-        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }',
-        inspect(injector)
+        inspect(injector),
+        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }'
       );
       const provider = injector.getProvider();
       assert.equal(
-        'Provider { Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue } }',
-        inspect(provider)
+        inspect(provider),
+        'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }'
       );
     });
   });
@@ -138,8 +138,8 @@ describe('Registry', () => {
       ])
         .getActionInjector()
         .getProvider();
-      assert.equal(99, deps.blah);
-      assert.equal(42, deps.answer);
+      assert.equal(deps.blah, 99);
+      assert.equal(deps.answer, 42);
     });
   });
 
@@ -203,12 +203,12 @@ describe('Registry', () => {
 
     it('supports option object syntax', () => {
       assert.equal(
-        undefined,
-        singleton.get({ key: 'missing', optional: true, multiValued: false })
+        singleton.get({ key: 'missing', optional: true, multiValued: false }),
+        undefined
       );
       assert.equal(
-        EXISTING,
-        singleton.get({ key: 'existing', optional: true, multiValued: false })
+        singleton.get({ key: 'existing', optional: true, multiValued: false }),
+        EXISTING
       );
     });
 
@@ -318,17 +318,17 @@ describe('Registry', () => {
 
     it('refuses to retrieve a multi-values key when requesting a single value', () => {
       const err = assertThrows(() => singleton.get('single'));
-      assert.equal('INCOMPATIBLE_DEPENDENCY_KEY', err.code);
+      assert.equal(err.code, 'INCOMPATIBLE_DEPENDENCY_KEY');
 
       assert.equal(
-        'INCOMPATIBLE_DEPENDENCY_KEY',
-        assertThrows(() => singleton.getProvider()['single']).code
+        assertThrows(() => singleton.getProvider()['single']).code,
+        'INCOMPATIBLE_DEPENDENCY_KEY'
       );
     });
 
     it('refuses to retrieve a normal key when requesting as multi-valued', () => {
       const err = assertThrows(() => singleton.get('simple[]'));
-      assert.equal('INCOMPATIBLE_DEPENDENCY_KEY', err.code);
+      assert.equal(err.code, 'INCOMPATIBLE_DEPENDENCY_KEY');
     });
 
     it('resolves to an empty list if no provider is known', () => {
@@ -353,7 +353,7 @@ describe('Registry', () => {
 
     it('exposes the index names of the list items', () => {
       const multi = /** @type {{ c: string }} */ (request.get('multi[]'));
-      assert.equal('r.c', multi.c);
+      assert.equal(multi.c, 'r.c');
     });
 
     it('does shadowing per index', () => {
