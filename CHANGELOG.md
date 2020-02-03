@@ -1,3 +1,9 @@
+### 4.0.1
+
+* fix: address lgtm.com issue & remove falsey code path - **[@aaarichter](https://github.com/aaarichter)** [#15](https://github.com/groupon/nilo/pull/15)
+  - [`11daf96`](https://github.com/groupon/nilo/commit/11daf96c04c4a3585c07d6cb7f1bda5fe99d16dd) **fix:** address lgtm.com issue & remove falsey code path
+
+
 ### 4.0.0
 
 #### Breaking Changes
