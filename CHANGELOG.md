@@ -1,3 +1,9 @@
+### 4.0.2
+
+* chore: Bump acorn from 6.1.1 to 6.4.1 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#16](https://github.com/groupon/nilo/pull/16)
+  - [`c3b889e`](https://github.com/groupon/nilo/commit/c3b889ea90f148680e20917936ec78f9d494d414) **chore:** Bump acorn from 6.1.1 to 6.4.1 - see: [6](- [Commits](https://github.com/acornjs/acorn/compare/6)
+
+
 ### 4.0.1
 
 * fix: address lgtm.com issue & remove falsey code path - **[@aaarichter](https://github.com/aaarichter)** [#15](https://github.com/groupon/nilo/pull/15)
