@@ -44,9 +44,7 @@ describe('app', () => {
       ));
       expect(spoilers).property('key', 'spoilers');
       expect(spoilers).property('multiValued', true);
-      expect(spoilers)
-        .property('indices')
-        .instanceOf(Map);
+      expect(spoilers).property('indices').instanceOf(Map);
       expect(spoilers.indices.get('answer')).property('multiValued', false);
 
       const actionScopeNode = objectGraph.children[0].children[0];
