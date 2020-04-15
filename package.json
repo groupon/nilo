@@ -21,6 +21,9 @@
   "engines": {
     "node": ">=10.12.0"
   },
+  "mocha": {
+    "recursive": true
+  },
   "nlm": {
     "license": {
       "files": [
@@ -29,7 +32,7 @@
     }
   },
   "dependencies": {
-    "commander": "^2.20.3",
+    "commander": "^5.0.0",
     "debug": "^4.1.1",
     "glob": "^7.1.6"
   },
@@ -38,10 +41,10 @@
     "@types/chai-as-promised": "^7.1.2",
     "@types/debug": "^4.1.5",
     "@types/lodash": "^4.14.149",
-    "@types/mkdirp": "^0.5.2",
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^11.15.10",
-    "@types/tmp": "0.0.34",
+    "@types/mkdirp": "^1.0.0",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.11.1",
+    "@types/tmp": "^0.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^6.8.0",
@@ -51,9 +54,9 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.3",
     "lodash": "^4.17.15",
-    "mkdirp": "^0.5.1",
-    "mocha": "^6.2.3",
-    "nlm": "^3.6.3",
+    "mkdirp": "^1.0.4",
+    "mocha": "^7.1.1",
+    "nlm": "^4.2.0",
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
     "typescript": "3.3.4000"

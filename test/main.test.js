@@ -16,7 +16,7 @@ describe('main', () => {
     const { stdout } = await execFile('node', [CLI, '--help'], {
       cwd: PROJECT_PATH,
     });
-    expect(stdout).match(/start \[options\]\s+Launch all the things/);
+    expect(stdout).match(/start \[options]\s+Launch all the things/);
   });
 
   it('exits with the code returned from commands', async () => {
