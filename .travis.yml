@@ -2,6 +2,7 @@ language: node_js
 node_js:
   - '10'
   - '12'
+  - '14'
 env:
   - NODE_OPTIONS=
   - NODE_OPTIONS=--experimental-modules
@@ -11,4 +12,4 @@ deploy:
     skip_cleanup: true
     'on':
       branch: master
-      node: '12'
+      node: '14'

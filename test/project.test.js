@@ -33,7 +33,7 @@ describe('Project', () => {
   describe('loadInterfaceFiles', () => {
     /** @type {Project} */
     let project;
-    /** @type {import('tmp').SynchrounousResult} */
+    /** @type {import('tmp').DirResult} */
     let tmpHandle;
     before(async () => {
       tmpHandle = tmp.dirSync({ unsafeCleanup: true });

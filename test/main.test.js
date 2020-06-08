@@ -1,6 +1,6 @@
 'use strict';
 
-const { execFile: execFileCb } = require('child_process');
+const { execFile: execFileCb, execFileSync } = require('child_process');
 const path = require('path');
 const { promisify } = require('util');
 
@@ -13,10 +13,10 @@ const PROJECT_PATH = path.resolve(__dirname, '..', 'examples', 'project');
 
 describe('main', () => {
   it('allows describing commands', async () => {
-    const { stdout } = await execFile('node', [CLI, '--help'], {
+    const stdout = execFileSync('node', [CLI, '-h'], {
       cwd: PROJECT_PATH,
-    });
-    expect(stdout).match(/start \[options\]\s+Launch all the things/);
+    }).toString();
+    expect(stdout).match(/start \[options]\s+Launch all the things/);
   });
 
   it('exits with the code returned from commands', async () => {
