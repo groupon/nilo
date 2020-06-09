@@ -43,7 +43,7 @@
     "@types/lodash": "^4.14.155",
     "@types/mkdirp": "^1.0.1",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^13.11.1",
+    "@types/node": "^12.12.45",
     "@types/tmp": "^0.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
