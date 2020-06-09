@@ -9,7 +9,7 @@ env:
 deploy:
   - provider: script
     script: npx nlm release
-    skip_cleanup: true
+    cleanup: false
     'on':
       branch: master
-      node: '14'
+      node_js: '14'
