@@ -1,3 +1,11 @@
 {
-  "extends": "groupon/node10"
+  "extends": "groupon",
+  "overrides": [
+    {
+      "files": "*.test.js",
+      "env": {
+        "mocha": true
+      }
+    }
+  ]
 }

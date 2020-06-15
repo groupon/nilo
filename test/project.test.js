@@ -33,8 +33,9 @@ describe('Project', () => {
   describe('loadInterfaceFiles', () => {
     /** @type {Project} */
     let project;
-    /** @type {import('tmp').SynchrounousResult} */
+    /** @type {import('tmp').DirResult} */
     let tmpHandle;
+
     before(async () => {
       tmpHandle = tmp.dirSync({ unsafeCleanup: true });
       project = new Project(tmpHandle.name, FRAMEWORK_DIR);
@@ -46,6 +47,8 @@ describe('Project', () => {
           dependencies: {
             '@some-scope/pkg1': '*',
             pkg1: '*',
+            'exports-dep1': '*',
+            'exports-invalid1': '*',
           },
           devDependencies: {
             'dev-dep1': '*',
@@ -56,7 +59,23 @@ describe('Project', () => {
 
 module.exports = 'from lib1';
 `,
+        'modules/lib1/open-graph.js': `\
+'use strict';
+
+module.exports = () => {return 'from lib1'};
+`,
+        'node_modules/exports-dep1/package.json': {
+          exports: {
+            './everywhere': './everywhere.js', // valid exports path
+          },
+        },
+        'node_modules/exports-invalid1/package.json': {
+          exports: {
+            '.': './something.js', // ./everywhere exports path is missing
+          },
+        },
       };
+
       if (await supportsESM()) {
         // eslint-disable-next-line no-console
         console.log('      [esm support enabled]');
@@ -65,7 +84,14 @@ export default 'from mod1';
 export const namedExport = 'forwarded';
 `;
       }
-      const pkgNames = ['@some-scope/pkg1', 'dev-dep1', 'hoisted', 'pkg2'];
+
+      const pkgNames = [
+        '@some-scope/pkg1',
+        'dev-dep1',
+        'hoisted',
+        'unlisted1',
+        'exports-dep1',
+      ];
       for (const pkgName of pkgNames) {
         files[`node_modules/${pkgName}/everywhere.js`] = `\
 'use strict';
@@ -144,13 +170,19 @@ module.exports = 'from ${pkgName}';
               moduleNamespace: { default: 'from @some-scope/pkg1' },
               defaultExport: 'from @some-scope/pkg1',
             },
+            {
+              specifier: 'exports-dep1/everywhere',
+              group: 'exports-dep1',
+              moduleNamespace: { default: 'from exports-dep1' },
+              defaultExport: 'from exports-dep1',
+            },
           ],
           await project.loadInterfaceFiles('everywhere')
         );
       });
     });
 
-    withNodeEnv('foobar', () => {
+    withNodeEnv('any-env', () => {
       it('includes dev deps', async () => {
         sortedEqual(
           [
@@ -185,8 +217,32 @@ module.exports = 'from ${pkgName}';
               moduleNamespace: { default: 'from dev-dep1' },
               defaultExport: 'from dev-dep1',
             },
+            {
+              defaultExport: 'from exports-dep1',
+              group: 'exports-dep1',
+              moduleNamespace: {
+                default: 'from exports-dep1',
+              },
+              specifier: 'exports-dep1/everywhere',
+            },
           ],
           await project.loadInterfaceFiles('everywhere')
+        );
+      });
+
+      it('omits packages with exports section not exporting requested path', async () => {
+        const res = await project.loadInterfaceFiles('everywhere');
+        assert.ok(
+          res.every(
+            ({ defaultExport }) => !defaultExport.includes('exports-invalid1')
+          )
+        );
+      });
+
+      it('omits unlisted / sub-dependencies dependencies', async () => {
+        const res = await project.loadInterfaceFiles('everywhere');
+        assert.ok(
+          res.every(({ defaultExport }) => !defaultExport.includes('unlisted1'))
         );
       });
     });
