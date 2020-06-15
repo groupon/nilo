@@ -1,3 +1,16 @@
+### 4.0.3 - 2020-06-15
+
+* fix: compatibility with package "exports" & missing default export for cjs [node 14] - **[@aaarichter](https://github.com/aaarichter)** [#18](https://github.com/groupon/nilo/pull/18)
+  - [`5bdd632`](https://github.com/groupon/nilo/commit/5bdd632bb650a56ffdeb6507d60727a5f5be6b46) **chore:** update packages
+  - [`6b58471`](https://github.com/groupon/nilo/commit/6b5847199fd688cf1e7101f674c7868f5f1394b5) **chore:** set node engine to 10.12
+  - [`10f4755`](https://github.com/groupon/nilo/commit/10f475515fb0f751ad7ce195990d21c2d17b2aa8) **style:** fix linting
+  - [`61e153a`](https://github.com/groupon/nilo/commit/61e153af9bfb79a7fc4e6a6c321393bf26c2096b) **chore:** update package and ci
+  - [`36b012a`](https://github.com/groupon/nilo/commit/36b012a0b01a1d0e05661ac1f3f73f1d04ef6c6d) **fix:** compatibility with package "exports" & missing default export for cjs [Node 14]
+  - [`1b43c1d`](https://github.com/groupon/nilo/commit/1b43c1d9573b0ee2c75aa242d08bb4be1a7c9399) **fix:** update travis syntax
+  - [`84b4542`](https://github.com/groupon/nilo/commit/84b45428367a57e99723b0629ecae498b1f696a6) **fix:** commander type vs NODEJS typing issue
+  - [`4bdca9d`](https://github.com/groupon/nilo/commit/4bdca9d96ff614c5d935536324a0dee20f4a3862) **test:** add tests for "exports" and not listed dependencies
+
+
 ### 4.0.2
 
 * chore: Bump acorn from 6.1.1 to 6.4.1 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#16](https://github.com/groupon/nilo/pull/16)
