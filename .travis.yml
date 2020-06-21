@@ -5,7 +5,7 @@ node_js:
   - '14'
 env:
   - NODE_OPTIONS=
-  - NODE_OPTIONS=--experimental-modules
+  - NODE_OPTIONS=--experimental-modules --experimental-json-modules
 deploy:
   - provider: script
     script: npx nlm release
