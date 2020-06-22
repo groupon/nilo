@@ -1,47 +1,183 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
+const console = require('console');
 
 const assert = require('chai').assert;
 const sortBy = require('lodash/sortBy');
-const mkdirp = require('mkdirp');
 const tmp = require('tmp');
 
 const { Project } = require('../');
-const { supportsESM } = require('../lib/esm');
+const { supportsESM } = require('./env');
+
+const { writeFiles, withNodeEnv } = require('./env');
 
 const FRAMEWORK_DIR = path.resolve(__dirname, '..');
 
+tmp.setGracefulCleanup();
 /**
- * @param {string} nodeEnv
- * @param {() => void} fn
+ *
+ * @param {string} pkgName
+ * @return {{[p: string]: string}}
  */
-function withNodeEnv(nodeEnv, fn) {
-  describe(`with NODE_ENV=${nodeEnv}`, () => {
-    before(() => {
-      process.env.NODE_ENV = nodeEnv;
-    });
-    after(() => {
-      process.env.NODE_ENV = 'test';
-    });
-    fn();
-  });
+function getEverywhereJS(pkgName) {
+  return {
+    [`node_modules/${pkgName}/everywhere.js`]: `\
+'use strict';
+
+module.exports = 'from ${pkgName}';
+`,
+  };
+}
+
+/**
+ * @param {{ specifier: string, [key: string]: any }[]} expected
+ * @param {{ specifier: string, [key: string]: any }[]} actual
+ */
+function sortedEqual(expected, actual) {
+  // native es modules return a namespace which isn't an ordinary object,
+  // which makes mocha barf on diffing
+  for (const a of actual) {
+    if (a.moduleNamespace) a.moduleNamespace = { ...a.moduleNamespace };
+  }
+  assert.deepStrictEqual(
+    sortBy(actual, 'specifier'),
+    sortBy(expected, 'specifier')
+  );
 }
 
 describe('Project', () => {
+  /** @type {import('tmp').DirResult} */
+  let tmpHandle;
+  /** @type {Project} */
+  let project;
+  let hasESMSupport = false;
+  let hasCJSSupport = false;
+
+  before(async () => {
+    [hasESMSupport, hasCJSSupport] = await supportsESM();
+    console.log(`   [esm support ${hasESMSupport ? 'enabled' : 'disabled'}]`);
+    console.log(`   [cjs support ${hasCJSSupport ? 'enabled' : 'disabled'}]`);
+  });
+  afterEach(() => {
+    // @ts-ignore
+    project['_globCache'] = {};
+    // @ts-ignore
+    project['_globStatCache'] = {};
+  });
+
+  beforeEach(async () => {
+    tmpHandle = tmp.dirSync({ unsafeCleanup: true });
+    project = new Project(tmpHandle.name, FRAMEWORK_DIR);
+  });
+
+  afterEach(() => {
+    if (tmpHandle) tmpHandle.removeCallback();
+  });
+
   describe('loadInterfaceFiles', () => {
-    /** @type {Project} */
-    let project;
-    /** @type {import('tmp').DirResult} */
-    let tmpHandle;
+    const cases = {
+      '@some-scope/pkg1': {
+        files: getEverywhereJS('@some-scope/pkg1'),
+        expected: {
+          specifier: '@some-scope/pkg1/everywhere',
+          group: 'pkg1',
+          moduleNamespace: { default: 'from @some-scope/pkg1' },
+          defaultExport: 'from @some-scope/pkg1',
+        },
+      },
 
-    before(async () => {
-      tmpHandle = tmp.dirSync({ unsafeCleanup: true });
-      project = new Project(tmpHandle.name, FRAMEWORK_DIR);
+      'exports-invalid1': {
+        files: {
+          'node_modules/exports-invalid1/package.json': {
+            exports: {
+              '.': './something.js', // ./everywhere exports path is missing
+            },
+          },
+        },
+      },
+      'exports-dep1': {
+        files: {
+          'node_modules/exports-dep1/package.json': {
+            exports: {
+              './everywhere': './everywhere.js', // valid exports path
+            },
+          },
+          ...getEverywhereJS('exports-dep1'),
+        },
+        expected: {
+          defaultExport: 'from exports-dep1',
+          group: 'exports-dep1',
+          moduleNamespace: {
+            default: 'from exports-dep1',
+          },
+          specifier: 'exports-dep1/everywhere',
+        },
+      },
 
+      pkg1: {
+        expected: {
+          specifier: 'exports-dep1/everywhere',
+          group: 'exports-dep1',
+          moduleNamespace: { default: 'from exports-dep1' },
+          defaultExport: 'from exports-dep1',
+        },
+      },
+
+      mod1: {
+        files: {
+          'modules/mod1/everywhere.mjs': `\
+export default 'from mod1';
+export const namedExport = 'forwarded';
+`,
+        },
+        expected: {
+          specifier: './modules/mod1/everywhere.mjs',
+          group: 'mod1',
+          moduleNamespace: {
+            default: 'from mod1',
+            namedExport: 'forwarded',
+          },
+          defaultExport: 'from mod1',
+        },
+      },
+
+      lib1: {
+        files: {
+          'lib/lib1/everywhere.js': `\
+'use strict';
+
+module.exports = 'from lib1';
+`,
+          'modules/lib1/open-graph.js': `\
+'use strict';
+
+module.exports = () => {return 'from lib1'};
+`,
+        },
+        expected: {
+          specifier: './lib/lib1/everywhere.js',
+          group: 'lib1',
+          moduleNamespace: { default: 'from lib1' },
+          defaultExport: 'from lib1',
+        },
+      },
+      'dev-dep1': {
+        files: getEverywhereJS('dev-dep1'),
+        expected: {
+          specifier: 'dev-dep1/everywhere',
+          group: 'dev-dep1',
+          moduleNamespace: { default: 'from dev-dep1' },
+          defaultExport: 'from dev-dep1',
+        },
+      },
+      unlisted: {
+        files: getEverywhereJS('unlisted'),
+      },
+    };
+
+    beforeEach(async () => {
       // create modules etc.
-      /** @type {{ [key: string]: string | object }} */
       const files = {
         'package.json': {
           dependencies: {
@@ -54,88 +190,17 @@ describe('Project', () => {
             'dev-dep1': '*',
           },
         },
-        'lib/lib1/everywhere.js': `\
-'use strict';
-
-module.exports = 'from lib1';
-`,
-        'modules/lib1/open-graph.js': `\
-'use strict';
-
-module.exports = () => {return 'from lib1'};
-`,
-        'node_modules/exports-dep1/package.json': {
-          exports: {
-            './everywhere': './everywhere.js', // valid exports path
-          },
-        },
-        'node_modules/exports-invalid1/package.json': {
-          exports: {
-            '.': './something.js', // ./everywhere exports path is missing
-          },
-        },
+        ...cases['@some-scope/pkg1'].files,
+        ...cases['lib1'].files,
+        ...cases['exports-dep1'].files,
+        ...cases['exports-invalid1'].files,
+        ...cases['dev-dep1'].files,
+        ...(hasESMSupport && cases['mod1'].files),
+        ...cases['unlisted'].files,
       };
 
-      if (await supportsESM()) {
-        // eslint-disable-next-line no-console
-        console.log('      [esm support enabled]');
-        files['modules/mod1/everywhere.mjs'] = `\
-export default 'from mod1';
-export const namedExport = 'forwarded';
-`;
-      }
-
-      const pkgNames = [
-        '@some-scope/pkg1',
-        'dev-dep1',
-        'hoisted',
-        'unlisted1',
-        'exports-dep1',
-      ];
-      for (const pkgName of pkgNames) {
-        files[`node_modules/${pkgName}/everywhere.js`] = `\
-'use strict';
-
-module.exports = 'from ${pkgName}';
-`;
-      }
-
-      for (const [filename, content] of Object.entries(files)) {
-        const absoluteFilename = path.join(tmpHandle.name, filename);
-        mkdirp.sync(path.dirname(absoluteFilename));
-        fs.writeFileSync(
-          absoluteFilename,
-          typeof content === 'string' ? content : `${JSON.stringify(content)}\n`
-        );
-      }
+      writeFiles(files, tmpHandle);
     });
-
-    after(() => {
-      if (tmpHandle) tmpHandle.removeCallback();
-    });
-
-    afterEach(() => {
-      // @ts-ignore
-      project['_globCache'] = {};
-      // @ts-ignore
-      project['_globStatCache'] = {};
-    });
-
-    /**
-     * @param {{ specifier: string, [key: string]: any }[]} expected
-     * @param {{ specifier: string, [key: string]: any }[]} actual
-     */
-    function sortedEqual(expected, actual) {
-      // native es modules return a namespace which isn't an ordinary object,
-      // which makes mocha barf on diffing
-      for (const a of actual) {
-        if (a.moduleNamespace) a.moduleNamespace = { ...a.moduleNamespace };
-      }
-      assert.deepStrictEqual(
-        sortBy(actual, 'specifier'),
-        sortBy(expected, 'specifier')
-      );
-    }
 
     it('returns an empty set if there are no interface files', async () => {
       sortedEqual([], await project.loadInterfaceFiles('no-such-files'));
@@ -145,37 +210,10 @@ module.exports = 'from ${pkgName}';
       it('omits dev deps', async () => {
         sortedEqual(
           [
-            {
-              specifier: './lib/lib1/everywhere.js',
-              group: 'lib1',
-              moduleNamespace: { default: 'from lib1' },
-              defaultExport: 'from lib1',
-            },
-            ...((await supportsESM())
-              ? [
-                  {
-                    specifier: './modules/mod1/everywhere.mjs',
-                    group: 'mod1',
-                    moduleNamespace: {
-                      default: 'from mod1',
-                      namedExport: 'forwarded',
-                    },
-                    defaultExport: 'from mod1',
-                  },
-                ]
-              : []),
-            {
-              specifier: '@some-scope/pkg1/everywhere',
-              group: 'pkg1',
-              moduleNamespace: { default: 'from @some-scope/pkg1' },
-              defaultExport: 'from @some-scope/pkg1',
-            },
-            {
-              specifier: 'exports-dep1/everywhere',
-              group: 'exports-dep1',
-              moduleNamespace: { default: 'from exports-dep1' },
-              defaultExport: 'from exports-dep1',
-            },
+            cases['lib1'].expected,
+            ...(hasESMSupport ? [cases['mod1'].expected] : []),
+            cases['@some-scope/pkg1'].expected,
+            cases['exports-dep1'].expected,
           ],
           await project.loadInterfaceFiles('everywhere')
         );
@@ -186,45 +224,11 @@ module.exports = 'from ${pkgName}';
       it('includes dev deps', async () => {
         sortedEqual(
           [
-            {
-              specifier: './lib/lib1/everywhere.js',
-              group: 'lib1',
-              moduleNamespace: { default: 'from lib1' },
-              defaultExport: 'from lib1',
-            },
-            ...((await supportsESM())
-              ? [
-                  {
-                    specifier: './modules/mod1/everywhere.mjs',
-                    group: 'mod1',
-                    moduleNamespace: {
-                      default: 'from mod1',
-                      namedExport: 'forwarded',
-                    },
-                    defaultExport: 'from mod1',
-                  },
-                ]
-              : []),
-            {
-              specifier: '@some-scope/pkg1/everywhere',
-              group: 'pkg1',
-              moduleNamespace: { default: 'from @some-scope/pkg1' },
-              defaultExport: 'from @some-scope/pkg1',
-            },
-            {
-              specifier: 'dev-dep1/everywhere',
-              group: 'dev-dep1',
-              moduleNamespace: { default: 'from dev-dep1' },
-              defaultExport: 'from dev-dep1',
-            },
-            {
-              defaultExport: 'from exports-dep1',
-              group: 'exports-dep1',
-              moduleNamespace: {
-                default: 'from exports-dep1',
-              },
-              specifier: 'exports-dep1/everywhere',
-            },
+            cases['lib1'].expected,
+            ...(hasESMSupport ? [cases['mod1'].expected] : []),
+            cases['@some-scope/pkg1'].expected,
+            cases['dev-dep1'].expected,
+            cases['exports-dep1'].expected,
           ],
           await project.loadInterfaceFiles('everywhere')
         );
@@ -243,6 +247,178 @@ module.exports = 'from ${pkgName}';
         const res = await project.loadInterfaceFiles('everywhere');
         assert.ok(
           res.every(({ defaultExport }) => !defaultExport.includes('unlisted1'))
+        );
+      });
+    });
+  });
+
+  describe('module handling', () => {
+    const mjs_cases = {
+      default_local: {
+        files: {
+          './modules/default_local/everywhere.mjs': `\
+export default 'from default_local';
+`,
+        },
+        expected: {
+          specifier: './modules/default_local/everywhere.mjs',
+          group: 'default_local',
+          moduleNamespace: {
+            default: 'from default_local',
+          },
+          defaultExport: 'from default_local',
+        },
+      },
+
+      no_default_local: {
+        files: {
+          './modules/no_default_local/everywhere.mjs': `\
+export const namedExport = 'forwarded';
+`,
+        },
+        expected: {
+          specifier: './modules/no_default_local/everywhere.mjs',
+          group: 'no_default_local',
+          moduleNamespace: {
+            namedExport: 'forwarded',
+          },
+          defaultExport: undefined,
+        },
+      },
+
+      es_module_local: {
+        files: {
+          './modules/es_module_local/everywhere.js': `\
+export const namedExport = 'forwarded';
+export default 'from default_local';
+`,
+        },
+        expected: {
+          specifier: './modules/es_module_local/everywhere.js',
+          group: 'es_module_local',
+          moduleNamespace: {
+            namedExport: 'forwarded',
+            default: 'from default_local',
+          },
+          defaultExport: 'from default_local',
+        },
+      },
+
+      npm_exports: {
+        FIXME: 'not working yet',
+        files: {
+          './node_modules/npm_exports/package.json': {
+            name: 'npm_exports',
+            exports: {
+              '.': './everywhere.mjs',
+              './everywhere': './everywhere.mjs',
+            },
+          },
+          './node_modules/npm_exports/everywhere.mjs': `\
+      export const namedExport = 'forwarded';
+      `,
+        },
+        expected: {
+          specifier: './node_modules/npm_exports/everywhere.mjs',
+          group: 'npm_exports',
+          moduleNamespace: {
+            namedExport: 'forwarded',
+          },
+          defaultExport: undefined,
+        },
+      },
+
+      npm_type_module: {
+        FIXME: 'not working yet',
+        files: {
+          './node_modules/npm_type_module/package.json': { type: 'module' },
+          './node_modules/npm_type_module/everywhere.js': `\
+      export const namedExport = 'forwarded';
+      `,
+        },
+        expected: {
+          specifier: './node_modules/npm_type_module/everywhere.js',
+          group: 'npm_type_module',
+          moduleNamespace: {
+            namedExport: 'forwarded',
+          },
+          defaultExport: undefined,
+        },
+      },
+
+      cjs_module_local: {
+        FIXME: 'not working yet',
+        files: {
+          'lib/cjs_module_local/everywhere.cjs': `\
+'use strict';
+
+module.exports = 'from cjs_module_local';
+`,
+        },
+        expected: {
+          specifier: './lib/cjs_module_local/everywhere.cjs',
+          group: 'cjs_module_local',
+          moduleNamespace: { default: 'from cjs_module_local' },
+          defaultExport: 'from cjs_module_local',
+        },
+      },
+    };
+
+    describe('local', () => {
+      it('loads local ESM files', async function () {
+        if (!hasESMSupport) {
+          console.log('ESM not supported. Skipping test');
+          this.skip();
+        }
+
+        const files = {
+          'package.json': {
+            type: 'modules',
+            dependencies: {
+              npm_exports: '*',
+            },
+            devDependencies: {},
+          },
+          './modules/package.json': {
+            type: 'modules',
+          },
+          ...mjs_cases['default_local'].files,
+          ...mjs_cases['no_default_local'].files,
+        };
+
+        writeFiles(files, tmpHandle);
+
+        sortedEqual(
+          [
+            mjs_cases['default_local'].expected,
+            mjs_cases['no_default_local'].expected,
+          ],
+          await project.loadInterfaceFiles('everywhere')
+        );
+      });
+
+      // this fails in Node 10 / legacy ESM implementation
+      // right now the globbing pattern in `lib/project.js` doesn't include cjs
+      it.skip('loads local ESM files w/ project type=module', async function () {
+        if (!hasESMSupport) {
+          console.log('ESM not supported. Skipping test');
+          this.skip();
+        }
+
+        const files = {
+          'package.json': { type: 'module' },
+          ...mjs_cases['es_module_local'].files,
+          ...(hasCJSSupport && mjs_cases['cjs_module_local'].files),
+        };
+
+        writeFiles(files, tmpHandle);
+
+        sortedEqual(
+          [
+            mjs_cases['es_module_local'].expected,
+            ...(hasCJSSupport ? [mjs_cases['cjs_module_local'].expected] : []),
+          ],
+          await project.loadInterfaceFiles('everywhere')
         );
       });
     });
