@@ -1,3 +1,12 @@
+### 4.0.4 - 2020-06-22
+
+* fix: esm module verification  - **[@aaarichter](https://github.com/aaarichter)** [#19](https://github.com/groupon/nilo/pull/19)
+  - [`890135c`](https://github.com/groupon/nilo/commit/890135c9de8636a29c39ef8612fca28b72cd249b) **fix:** handle mjs without default export
+  - [`7e4300d`](https://github.com/groupon/nilo/commit/7e4300d1a459c81af0173025049c9e4c301b696e) **test:** enable ESM detection for node 12 / 14 & restructure test cases
+  - [`07005b5`](https://github.com/groupon/nilo/commit/07005b59c972b994b6d219024aa064b6f2c26174) **fix:** use utils to detect module namespace
+  - [`1f13632`](https://github.com/groupon/nilo/commit/1f13632814b75577185a6e49e147c879a912548e) **test:** rewrite project tests
+
+
 ### 4.0.3 - 2020-06-15
 
 * fix: compatibility with package "exports" & missing default export for cjs [node 14] - **[@aaarichter](https://github.com/aaarichter)** [#18](https://github.com/groupon/nilo/pull/18)
