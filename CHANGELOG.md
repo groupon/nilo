@@ -1,3 +1,9 @@
+### 4.0.5 - 2020-07-20
+
+* chore: Bump lodash from 4.17.15 to 4.17.19 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#20](https://github.com/groupon/nilo/pull/20)
+  - [`b36ceec`](https://github.com/groupon/nilo/commit/b36ceec006b1117881a1b2a84d9162b66dd0ce96) **chore:** Bump lodash from 4.17.15 to 4.17.19 - see: [4](- [Commits](https://github.com/lodash/lodash/compare/4)
+
+
 ### 4.0.4 - 2020-06-22
 
 * fix: esm module verification  - **[@aaarichter](https://github.com/aaarichter)** [#19](https://github.com/groupon/nilo/pull/19)
