@@ -31,10 +31,10 @@ module.exports = 'from ${pkgName}';
 }
 
 /**
- * @param {{ specifier: string, [key: string]: any }[]} expected
  * @param {{ specifier: string, [key: string]: any }[]} actual
+ * @param {{ specifier: string, [key: string]: any }[]} expected
  */
-function sortedEqual(expected, actual) {
+function sortedEqual(actual, expected) {
   // native es modules return a namespace which isn't an ordinary object,
   // which makes mocha barf on diffing
   for (const a of actual) {
@@ -75,7 +75,7 @@ describe('Project', () => {
     if (tmpHandle) tmpHandle.removeCallback();
   });
 
-  describe('loadInterfaceFiles', () => {
+  describe('CJS handling', () => {
     const cases = {
       '@some-scope/pkg1': {
         files: getEverywhereJS('@some-scope/pkg1'),
@@ -121,24 +121,6 @@ describe('Project', () => {
           group: 'exports-dep1',
           moduleNamespace: { default: 'from exports-dep1' },
           defaultExport: 'from exports-dep1',
-        },
-      },
-
-      mod1: {
-        files: {
-          'modules/mod1/everywhere.mjs': `\
-export default 'from mod1';
-export const namedExport = 'forwarded';
-`,
-        },
-        expected: {
-          specifier: './modules/mod1/everywhere.mjs',
-          group: 'mod1',
-          moduleNamespace: {
-            default: 'from mod1',
-            namedExport: 'forwarded',
-          },
-          defaultExport: 'from mod1',
         },
       },
 
@@ -195,64 +177,137 @@ module.exports = () => {return 'from lib1'};
         ...cases['exports-dep1'].files,
         ...cases['exports-invalid1'].files,
         ...cases['dev-dep1'].files,
-        ...(hasESMSupport && cases['mod1'].files),
         ...cases['unlisted'].files,
       };
 
       writeFiles(files, tmpHandle);
     });
 
-    it('returns an empty set if there are no interface files', async () => {
-      sortedEqual([], await project.loadInterfaceFiles('no-such-files'));
-    });
+    describe('project.loadInterfaceFiles', () => {
+      it('returns an empty set if there are no interface files', async () => {
+        sortedEqual(await project.loadInterfaceFiles('no-such-files'), []);
+      });
 
-    withNodeEnv('production', () => {
-      it('omits dev deps', async () => {
-        sortedEqual(
-          [
+      withNodeEnv('production', () => {
+        it('omits dev deps', async () => {
+          sortedEqual(await project.loadInterfaceFiles('everywhere'), [
             cases['lib1'].expected,
-            ...(hasESMSupport ? [cases['mod1'].expected] : []),
             cases['@some-scope/pkg1'].expected,
             cases['exports-dep1'].expected,
-          ],
-          await project.loadInterfaceFiles('everywhere')
-        );
+          ]);
+        });
       });
-    });
 
-    withNodeEnv('any-env', () => {
-      it('includes dev deps', async () => {
-        sortedEqual(
-          [
+      withNodeEnv('any-env', () => {
+        it('includes dev deps', async () => {
+          sortedEqual(await project.loadInterfaceFiles('everywhere'), [
             cases['lib1'].expected,
-            ...(hasESMSupport ? [cases['mod1'].expected] : []),
             cases['@some-scope/pkg1'].expected,
             cases['dev-dep1'].expected,
             cases['exports-dep1'].expected,
-          ],
-          await project.loadInterfaceFiles('everywhere')
+          ]);
+        });
+
+        it('omits packages with exports section not exporting requested path', async () => {
+          const res = await project.loadInterfaceFiles('everywhere');
+          assert.ok(
+            res.every(
+              ({ defaultExport }) => !defaultExport.includes('exports-invalid1')
+            )
+          );
+        });
+
+        it('omits unlisted / sub-dependencies dependencies', async () => {
+          const res = await project.loadInterfaceFiles('everywhere');
+          assert.ok(
+            res.every(
+              ({ defaultExport }) => !defaultExport.includes('unlisted1')
+            )
+          );
+        });
+      });
+    });
+
+    describe('project.requireOrNull', () => {
+      it(`returns file handle for valid module`, async () => {
+        assert.strictEqual(
+          project.requireOrNull('@some-scope/pkg1/everywhere'),
+          'from @some-scope/pkg1'
         );
       });
 
-      it('omits packages with exports section not exporting requested path', async () => {
-        const res = await project.loadInterfaceFiles('everywhere');
-        assert.ok(
-          res.every(
-            ({ defaultExport }) => !defaultExport.includes('exports-invalid1')
-          )
+      it(`doesn't throw when require throws ERR_PACKAGE_PATH_NOT_EXPORTED`, async function () {
+        if (!hasESMSupport) {
+          this.skip();
+        }
+
+        assert.doesNotThrow(() => {
+          const res = project.requireOrNull('exports-invalid1/everywhere');
+          assert.strictEqual(res, null);
+        });
+      });
+
+      it(`doesn't throw when require throws MODULE_NOT_FOUND`, async () => {
+        assert.doesNotThrow(() => {
+          const res = project.requireOrNull('@some-scope/pkg1/something');
+          assert.strictEqual(res, null);
+        });
+      });
+    });
+
+    describe('project.requireOrBundled', () => {
+      it(`returns file handle for valid module`, async () => {
+        assert.strictEqual(
+          project.requireOrBundled('@some-scope/pkg1/everywhere'),
+          'from @some-scope/pkg1'
         );
       });
 
-      it('omits unlisted / sub-dependencies dependencies', async () => {
-        const res = await project.loadInterfaceFiles('everywhere');
-        assert.ok(
-          res.every(({ defaultExport }) => !defaultExport.includes('unlisted1'))
+      it(`will throw when files don't exist`, async () => {
+        ['exports-invalid1/everywhere', '@some-scope/pkg1/something'].forEach(
+          file => {
+            if (file.includes('exports-invalid1') && !hasESMSupport) {
+              return;
+            }
+            assert.throws(
+              () => project.requireOrBundled(file),
+              /Cannot find module/
+            );
+          }
         );
+      });
+    });
+
+    describe('project.import', () => {
+      it(`returns file handle for valid module`, async () => {
+        assert.deepStrictEqual(
+          await project.import('@some-scope/pkg1/everywhere'),
+          { default: 'from @some-scope/pkg1' }
+        );
+      });
+
+      it(`doesn't throw when "import" throws ERR_PACKAGE_PATH_NOT_EXPORTED`, async function () {
+        if (!hasESMSupport) {
+          this.skip();
+        }
+
+        assert.doesNotThrow(async () => {
+          const res = await project.import('exports-invalid1/everywhere');
+
+          assert.strictEqual(res, null);
+        });
+      });
+
+      it(`doesn't throw when "import" can't find module`, async () => {
+        assert.doesNotThrow(async () => {
+          const res = await project.import('@some-scope/pkg1/something');
+          assert.strictEqual(res, null);
+        });
       });
     });
   });
 
-  describe('module handling', () => {
+  describe('ESM handling', () => {
     const mjs_cases = {
       default_local: {
         files: {
@@ -388,13 +443,10 @@ module.exports = 'from cjs_module_local';
 
         writeFiles(files, tmpHandle);
 
-        sortedEqual(
-          [
-            mjs_cases['default_local'].expected,
-            mjs_cases['no_default_local'].expected,
-          ],
-          await project.loadInterfaceFiles('everywhere')
-        );
+        sortedEqual(await project.loadInterfaceFiles('everywhere'), [
+          mjs_cases['default_local'].expected,
+          mjs_cases['no_default_local'].expected,
+        ]);
       });
 
       // this fails in Node 10 / legacy ESM implementation
@@ -413,13 +465,10 @@ module.exports = 'from cjs_module_local';
 
         writeFiles(files, tmpHandle);
 
-        sortedEqual(
-          [
-            mjs_cases['es_module_local'].expected,
-            ...(hasCJSSupport ? [mjs_cases['cjs_module_local'].expected] : []),
-          ],
-          await project.loadInterfaceFiles('everywhere')
-        );
+        sortedEqual(await project.loadInterfaceFiles('everywhere'), [
+          mjs_cases['es_module_local'].expected,
+          ...(hasCJSSupport ? [mjs_cases['cjs_module_local'].expected] : []),
+        ]);
       });
     });
   });
