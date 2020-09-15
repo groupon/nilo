@@ -15,11 +15,15 @@ type PackageJSON = {
   [key: string]: any;
 };
 
+type ModuleNamespace = {
+  [key: string]: any
+}
+
 type InterfaceFile = {
   specifier: string
   group: string
   defaultExport: any
-  moduleNamespace: { [key: string]: any }
+  moduleNamespace: ModuleNamespace
 };
 
 type SimpleDependencyProvider = (injector: Injector) => unknown;
@@ -97,7 +101,11 @@ export class Project {
   readonly packageJson: PackageJSON;
   readonly root: string;
 
+  import(specifier: string): Promise<ModuleNamespace>;
+  importOrNull(specifier: string): Promise<ModuleNamespace>;
+  requireOrNull(specifier: string): any| Error;
   requireBundled(specifier: string): any;
+  requireOrBundled(specifier: string): any | Error;
   loadInterfaceFiles(basename: string): Promise<InterfaceFile[]>;
 }
 
