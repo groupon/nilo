@@ -1,3 +1,10 @@
+### 4.0.6 - 2020-09-15
+
+* fix(requireOrNull): don't throw on packages with "exports" setting - **[@aaarichter](https://github.com/aaarichter)** [#21](https://github.com/groupon/nilo/pull/21)
+  - [`0bb51a5`](https://github.com/groupon/nilo/commit/0bb51a5e1bd8d0e8531c517825b3d6cc928dabe4) 🐛 **fix:** don't throw on packages with "exports" setting
+  - [`f80a60c`](https://github.com/groupon/nilo/commit/f80a60c500612aa4eb55c8967308dde74d9e1ea8) ♻️ **chore:** update dependencies
+
+
 ### 4.0.5 - 2020-07-20
 
 * chore: Bump lodash from 4.17.15 to 4.17.19 - **[@dependabot[bot]](https://github.com/apps/dependabot)** [#20](https://github.com/groupon/nilo/pull/20)
