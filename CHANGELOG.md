@@ -1,3 +1,10 @@
+### v4.0.7 (2021-02-17)
+
+#### 🔼 Dependencies
+
+* [#22](https://github.com/groupon/nilo/pull/22) chore: Bump ini from 1.3.5 to 1.3.7 ([@dependabot[bot]](https://github.com/apps/dependabot)) 
+
+
 ### 4.0.6 - 2020-09-15
 
 * fix(requireOrNull): don't throw on packages with "exports" setting - **[@aaarichter](https://github.com/aaarichter)** [#21](https://github.com/groupon/nilo/pull/21)
