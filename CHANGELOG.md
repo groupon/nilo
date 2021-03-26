@@ -1,3 +1,10 @@
+### v4.0.8 (2021-03-26)
+
+#### 🏡 Internal
+
+* [#23](https://github.com/groupon/nilo/pull/23) chore: switch to main & update packages ([@aaarichter](https://github.com/aaarichter)) 
+
+
 ### v4.0.7 (2021-02-17)
 
 #### 🔼 Dependencies

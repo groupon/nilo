@@ -1,3 +1,6 @@
+[![nlm-github](https://img.shields.io/badge/github-groupon%2Fnilo%2Fissues-F4D03F?logo=github&logoColor=white)](https://github.com/groupon/nilo/issues)
+![nlm-node](https://img.shields.io/badge/node-%3E%3D10.13-blue?logo=node.js&logoColor=white)
+![nlm-version](https://img.shields.io/badge/version-4.0.8-blue?logo=version&logoColor=white)
 # `nilo` ("ex nihilo")
 
 > Ex nihilo is a Latin phrase meaning "out of nothing".
