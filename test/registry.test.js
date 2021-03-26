@@ -2,7 +2,7 @@
 
 const { inspect } = require('util');
 
-const assert = require('chai').assert;
+const assert = require('assert');
 
 const Registry = require('../lib/registry');
 
@@ -16,7 +16,7 @@ function assertThrows(fn) {
   } catch (e) {
     error = e;
   }
-  assert.notEqual(undefined, error);
+  assert.notStrictEqual(error, undefined);
   return error;
 }
 
@@ -26,23 +26,23 @@ function assertThrows(fn) {
  * @param {Error & { code: string }} err
  */
 function assertInvalidError(err) {
-  assert.equal(err.code, 'INVALID_DEPENDENCY_KEY');
+  assert.strictEqual(err.code, 'INVALID_DEPENDENCY_KEY');
 }
 
 /**
  * @param {Error & { code: string }} err
  */
 function assertMissingError(err) {
-  assert.include(err.message, 'Unknown dependency');
-  assert.equal(err.code, 'INVALID_DEPENDENCY_KEY');
+  assert.ok(err.message.includes('Unknown dependency'));
+  assert.strictEqual(err.code, 'INVALID_DEPENDENCY_KEY');
 }
 
 /**
  * @param {Error & { code: string }} err
  */
 function assertDuplicateError(err) {
-  assert.include(err.message, 'already been registered');
-  assert.equal(err.code, 'DUPLICATE_DEPENDENCY_KEY');
+  assert.ok(err.message.includes('already been registered'));
+  assert.strictEqual(err.code, 'DUPLICATE_DEPENDENCY_KEY');
 }
 
 describe('Registry', () => {
@@ -77,19 +77,19 @@ describe('Registry', () => {
         .getActionInjector(req, res, action)
         .getProvider();
 
-      assert.deepEqual(['get', 'keys'], Object.keys(provider));
-      assert.deepEqual(
-        ['action', 'byAction', 'byReq', 'constValue', 'request', 'response'],
+      assert.deepStrictEqual(Object.keys(provider), ['get', 'keys']);
+      assert.deepStrictEqual(
         provider
           .keys()
           .filter(k => typeof k === 'string')
-          .sort()
+          .sort(),
+        ['action', 'byAction', 'byReq', 'constValue', 'request', 'response']
       );
     });
 
     it('has a short-hand for setting a constant value', () => {
       registry.singleton.has('constValue');
-      assert.equal(
+      assert.strictEqual(
         registry.getSingletonInjector().get('constValue'),
         CONST_VALUE
       );
@@ -97,33 +97,33 @@ describe('Registry', () => {
 
     it('exposes built-ins', () => {
       const injector = registry.getActionInjector(req, res, action);
-      assert.equal(injector.get('request'), req);
-      assert.equal(injector.get('response'), res);
-      assert.equal(injector.get('action'), action);
+      assert.strictEqual(injector.get('request'), req);
+      assert.strictEqual(injector.get('response'), res);
+      assert.strictEqual(injector.get('action'), action);
     });
 
     it('caches deps by request but not by action', () => {
       const first = registry.getActionInjector(req, res, action);
       const second = registry.getActionInjector(req, res, action);
 
-      assert.equal(first.get('byReq'), second.get('byReq'));
+      assert.strictEqual(first.get('byReq'), second.get('byReq'));
 
       // Repeated calls to same injector: same object
-      assert.equal(second.get('byAction'), second.get('byAction'));
+      assert.strictEqual(second.get('byAction'), second.get('byAction'));
       // Calls to different injectors: different objects
-      assert.notEqual(second.get('byAction'), first.get('byAction'));
+      assert.notStrictEqual(second.get('byAction'), first.get('byAction'));
       // But the objects are structurally the same
-      assert.deepEqual(second.get('byAction'), first.get('byAction'));
+      assert.deepStrictEqual(second.get('byAction'), first.get('byAction'));
     });
 
     it('can be inspected', () => {
       const injector = registry.getActionInjector(req, res, action);
-      assert.equal(
+      assert.strictEqual(
         inspect(injector),
         'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }'
       );
       const provider = injector.getProvider();
-      assert.equal(
+      assert.strictEqual(
         inspect(provider),
         'Injector<action> { action, byAction, request, response, byReq, Symbol(byReq), constValue }'
       );
@@ -138,8 +138,8 @@ describe('Registry', () => {
       ])
         .getActionInjector()
         .getProvider();
-      assert.equal(deps.blah, 99);
-      assert.equal(deps.answer, 42);
+      assert.strictEqual(deps.blah, 99);
+      assert.strictEqual(deps.answer, 42);
     });
   });
 
@@ -177,36 +177,36 @@ describe('Registry', () => {
     });
 
     it('gracefully ignores missing optional deps', () => {
-      assert.equal(singleton.get('missing?'), undefined);
-      assert.equal(singleton.get('existing?'), EXISTING);
-      assert.equal(singleton.get('graceful'), GRACEFUL);
-      assert.equal(singleton.get('lucky'), EXISTING);
-      assert.equal(request.get('alsoMissing?'), undefined);
-      assert.equal(request.get('existing?'), EXISTING);
-      assert.equal(request.get('graceful'), GRACEFUL);
-      assert.equal(request.get('lucky'), EXISTING);
+      assert.strictEqual(singleton.get('missing?'), undefined);
+      assert.strictEqual(singleton.get('existing?'), EXISTING);
+      assert.strictEqual(singleton.get('graceful'), GRACEFUL);
+      assert.strictEqual(singleton.get('lucky'), EXISTING);
+      assert.strictEqual(request.get('alsoMissing?'), undefined);
+      assert.strictEqual(request.get('existing?'), EXISTING);
+      assert.strictEqual(request.get('graceful'), GRACEFUL);
+      assert.strictEqual(request.get('lucky'), EXISTING);
     });
 
     it('supports the provider proxy', () => {
       const provider = singleton.getProvider();
-      assert.equal(provider['missing?'], undefined);
-      assert.equal(provider['existing?'], EXISTING);
-      assert.equal(provider['graceful'], GRACEFUL);
-      assert.equal(provider['lucky'], EXISTING);
+      assert.strictEqual(provider['missing?'], undefined);
+      assert.strictEqual(provider['existing?'], EXISTING);
+      assert.strictEqual(provider['graceful'], GRACEFUL);
+      assert.strictEqual(provider['lucky'], EXISTING);
 
       const reqProvider = request.getProvider();
-      assert.equal(reqProvider['alsoMissing?'], undefined);
-      assert.equal(reqProvider['existing?'], EXISTING);
-      assert.equal(reqProvider['graceful'], GRACEFUL);
-      assert.equal(reqProvider['lucky'], EXISTING);
+      assert.strictEqual(reqProvider['alsoMissing?'], undefined);
+      assert.strictEqual(reqProvider['existing?'], EXISTING);
+      assert.strictEqual(reqProvider['graceful'], GRACEFUL);
+      assert.strictEqual(reqProvider['lucky'], EXISTING);
     });
 
     it('supports option object syntax', () => {
-      assert.equal(
+      assert.strictEqual(
         singleton.get({ key: 'missing', optional: true, multiValued: false }),
         undefined
       );
-      assert.equal(
+      assert.strictEqual(
         singleton.get({ key: 'existing', optional: true, multiValued: false }),
         EXISTING
       );
@@ -318,9 +318,9 @@ describe('Registry', () => {
 
     it('refuses to retrieve a multi-values key when requesting a single value', () => {
       const err = assertThrows(() => singleton.get('single'));
-      assert.equal(err.code, 'INCOMPATIBLE_DEPENDENCY_KEY');
+      assert.strictEqual(err.code, 'INCOMPATIBLE_DEPENDENCY_KEY');
 
-      assert.equal(
+      assert.strictEqual(
         assertThrows(() => singleton.getProvider()['single']).code,
         'INCOMPATIBLE_DEPENDENCY_KEY'
       );
@@ -328,47 +328,60 @@ describe('Registry', () => {
 
     it('refuses to retrieve a normal key when requesting as multi-valued', () => {
       const err = assertThrows(() => singleton.get('simple[]'));
-      assert.equal(err.code, 'INCOMPATIBLE_DEPENDENCY_KEY');
+      assert.strictEqual(err.code, 'INCOMPATIBLE_DEPENDENCY_KEY');
     });
 
     it('resolves to an empty list if no provider is known', () => {
-      assert.deepEqual([], singleton.get('anyRandomName[]'));
-      assert.deepEqual(0, singleton.get('fromEmpty'));
+      assert.deepStrictEqual(singleton.get('anyRandomName[]'), []);
+      assert.strictEqual(singleton.get('fromEmpty'), 0);
       // This is a slight inconsistency that is impossible to sort out without
       // either *not* always returning arrays or using Proxy
-      assert.deepEqual([], singleton.getProvider()['anyRandomName[]']);
+      assert.deepStrictEqual(singleton.getProvider()['anyRandomName[]'], []);
     });
 
     it('resolves to a list for a single provider', () => {
-      assert.deepEqual([{}], singleton.get('single[]'));
-      assert.deepEqual([{}], singleton.getProvider()['single[]']);
+      assert.deepStrictEqual(Array.from(singleton.get('single[]')), [{}]);
+      assert.deepStrictEqual(Array.from(singleton.getProvider()['single[]']), [
+        {},
+      ]);
     });
 
     it('supports option object syntax', () => {
-      assert.deepEqual(
-        [{}],
-        singleton.get({ key: 'single', multiValued: true })
+      assert.deepStrictEqual(
+        Array.from(singleton.get({ key: 'single', multiValued: true })),
+        [{}]
       );
     });
 
     it('exposes the index names of the list items', () => {
       const multi = /** @type {{ c: string }} */ (request.get('multi[]'));
-      assert.equal(multi.c, 'r.c');
+      assert.strictEqual(multi.c, 'r.c');
     });
 
     it('does shadowing per index', () => {
-      assert.deepEqual(
-        ['s.a(singleton:x)', 's.b', 's.c', 's.d'],
-        singleton.get('multi[]')
-      );
-      assert.deepEqual(
-        ['s.a(singleton:x)', 's.b', 'r.c', 'r.d', 'r.e', 'r.f'],
-        request.get('multi[]')
-      );
-      assert.deepEqual(
-        ['s.a(singleton:x)', 'a.b', 'r.c', 'a.d', 'r.e', 'a.f', 'a.g'],
-        action.get('multi[]')
-      );
+      assert.deepStrictEqual(Array.from(singleton.get('multi[]')), [
+        's.a(singleton:x)',
+        's.b',
+        's.c',
+        's.d',
+      ]);
+      assert.deepStrictEqual(Array.from(request.get('multi[]')), [
+        's.a(singleton:x)',
+        's.b',
+        'r.c',
+        'r.d',
+        'r.e',
+        'r.f',
+      ]);
+      assert.deepStrictEqual(Array.from(action.get('multi[]')), [
+        's.a(singleton:x)',
+        'a.b',
+        'r.c',
+        'a.d',
+        'r.e',
+        'a.f',
+        'a.g',
+      ]);
     });
   });
 });

@@ -2,7 +2,7 @@
 
 const path = require('path');
 
-const { expect } = require('chai');
+const assert = require('assert');
 
 const { App } = require('../');
 
@@ -16,14 +16,19 @@ const PROJECT_PATH = path.resolve(__dirname, '..', 'examples', 'project');
 describe('app', () => {
   it('exposes project and registry', () => {
     const app = new App(PROJECT_PATH, CLI_PATH);
-    expect(app.appDirectory).equal(PROJECT_PATH);
-    expect(app.project.packageJson.name).equal('nilo-project');
-    expect(app.project.requireBundled('./package.json').name).equal('nilo-cli');
+
+    assert.strictEqual(app.appDirectory, PROJECT_PATH);
+    assert.strictEqual(app.project.packageJson.name, 'nilo-project');
+    assert.strictEqual(
+      app.project.requireBundled('./package.json').name,
+      'nilo-cli'
+    );
 
     const singletonInjector = app.registry.getSingletonInjector();
-    expect(singletonInjector.get('app')).equal(app);
-    expect(singletonInjector.get('project')).equal(app.project);
-    expect(singletonInjector.get('registry')).equal(app.registry);
+
+    assert.strictEqual(singletonInjector.get('app'), app);
+    assert.strictEqual(singletonInjector.get('project'), app.project);
+    assert.strictEqual(singletonInjector.get('registry'), app.registry);
   });
 
   describe('inspection of registered dependencies', () => {
@@ -32,37 +37,33 @@ describe('app', () => {
       await app.initialize();
 
       const objectGraph = app.registry.getProviderGraph();
-      expect(objectGraph).property('name', 'singleton');
-      expect(objectGraph).nested.property('children[0].name', 'request');
-      expect(objectGraph).nested.property(
-        'children[0].children[0].name',
-        'action'
-      );
+      assert.strictEqual(objectGraph.name, 'singleton');
+      assert.strictEqual(objectGraph.children[0].name, 'request');
+      assert.strictEqual(objectGraph.children[0].children[0].name, 'action');
 
       const spoilers = /** @type {MultiValuedProviderNode} */ (objectGraph.providers.get(
         'spoilers'
       ));
-      expect(spoilers).property('key', 'spoilers');
-      expect(spoilers).property('multiValued', true);
-      expect(spoilers).property('indices').instanceOf(Map);
-      expect(spoilers.indices.get('answer')).property('multiValued', false);
+      assert.strictEqual(spoilers.key, 'spoilers');
+      assert.ok(spoilers.multiValued);
+      assert.ok(spoilers.indices instanceof Map);
+
+      assert.strictEqual(spoilers.indices.get('answer').multiValued, false);
 
       const actionScopeNode = objectGraph.children[0].children[0];
       const answer = actionScopeNode.providers.get('answer');
-      expect(answer)
-        .property('dependencies')
-        .deep.equal([
-          {
-            key: 'base',
-            multiValued: false,
-            optional: false,
-          },
-          {
-            key: 'factor',
-            multiValued: false,
-            optional: false,
-          },
-        ]);
+      assert.deepStrictEqual(answer.dependencies, [
+        {
+          key: 'base',
+          multiValued: false,
+          optional: false,
+        },
+        {
+          key: 'factor',
+          multiValued: false,
+          optional: false,
+        },
+      ]);
     });
   });
 
@@ -87,7 +88,7 @@ describe('app', () => {
         );
       }
       await app.runAll('myHook[]');
-      expect(actual).deep.equal(expected);
+      assert.deepStrictEqual(actual, expected);
     });
   });
 });

@@ -14,12 +14,12 @@
     "esModuleInterop": true
   },
   "exclude": [
+    "test/**/*.js"
   ],
   "include": [
     "typings/**/*.d.ts",
     "examples/**/*.js",
     "*.js",
-    "lib/**/*.js",
-    "test/**/*.js"
+    "lib/**/*.js"
   ]
 }
