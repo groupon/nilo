@@ -15,11 +15,11 @@
   },
   "scripts": {
     "pretest": "eslint . && tsc",
-    "test": "nyc mocha",
+    "test": "c8 mocha",
     "posttest": "nlm verify"
   },
   "engines": {
-    "node": ">=10.12.0"
+    "node": ">=10.13"
   },
   "mocha": {
     "recursive": false
@@ -33,32 +33,28 @@
   },
   "dependencies": {
     "commander": "^2.20.3",
-    "debug": "^4.1.1",
+    "debug": "^4.3.1",
     "glob": "^7.1.6"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.12",
-    "@types/chai-as-promised": "^7.1.3",
     "@types/debug": "^4.1.5",
-    "@types/lodash": "^4.14.161",
+    "@types/lodash.sortby": "^4.7.6",
     "@types/mkdirp": "^1.0.1",
     "@types/mocha": "^8.0.3",
     "@types/node": "^12.12.58",
     "@types/tmp": "^0.2.0",
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "eslint": "^7.9.0",
-    "eslint-config-groupon": "^10.0.1",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-mocha": "^7.0.1",
+    "c8": "^7.6.0",
+    "eslint": "^7.22.0",
+    "eslint-config-groupon": "^10.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-mocha": "^8.1.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "lodash": "^4.17.20",
+    "eslint-plugin-prettier": "^3.3.1",
+    "lodash.sortby": "^4.7.0",
     "mkdirp": "^1.0.4",
-    "mocha": "^7.2.0",
-    "nlm": "^5.0.0",
-    "nyc": "^15.1.0",
-    "prettier": "^2.1.1",
+    "mocha": "^8.3.2",
+    "nlm": "^5.4.0",
+    "prettier": "^2.2.1",
     "tmp": "^0.2.1",
     "typescript": "3.3.4000"
   },

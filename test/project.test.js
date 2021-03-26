@@ -3,8 +3,8 @@
 const path = require('path');
 const console = require('console');
 
-const assert = require('chai').assert;
-const sortBy = require('lodash/sortBy');
+const assert = require('assert');
+const sortBy = require('lodash.sortby');
 const tmp = require('tmp');
 
 const { Project } = require('../');
