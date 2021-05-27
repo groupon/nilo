@@ -1,3 +1,10 @@
+### v4.0.9 (2021-05-27)
+
+#### 🔼 Dependencies
+
+* [#24](https://github.com/groupon/nilo/pull/24) chore: Bump hosted-git-info from 2.8.8 to 2.8.9 ([@dependabot[bot]](https://github.com/apps/dependabot)) 
+
+
 ### v4.0.8 (2021-03-26)
 
 #### 🏡 Internal
