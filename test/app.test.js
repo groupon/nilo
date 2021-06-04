@@ -41,9 +41,9 @@ describe('app', () => {
       assert.strictEqual(objectGraph.children[0].name, 'request');
       assert.strictEqual(objectGraph.children[0].children[0].name, 'action');
 
-      const spoilers = /** @type {MultiValuedProviderNode} */ (objectGraph.providers.get(
-        'spoilers'
-      ));
+      const spoilers = /** @type {MultiValuedProviderNode} */ (
+        objectGraph.providers.get('spoilers')
+      );
       assert.strictEqual(spoilers.key, 'spoilers');
       assert.ok(spoilers.multiValued);
       assert.ok(spoilers.indices instanceof Map);
