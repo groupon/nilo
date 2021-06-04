@@ -1,3 +1,10 @@
+### v4.0.10 (2021-06-04)
+<a id="v4.0.10"></a>
+#### 🏡 Internal
+
+* [#25](https://github.com/groupon/nilo/pull/25) ci(actions): add GitHub actions & remove Travis ([@aaarichter](https://github.com/aaarichter))
+
+
 ### v4.0.9 (2021-05-27)
 
 #### 🔼 Dependencies
