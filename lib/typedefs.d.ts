@@ -1,52 +1,55 @@
 import { IncomingMessage, ServerResponse } from 'http';
 
 type DependencyDescriptor = {
-  key: string | symbol,
-  index?: string,
-  optional?: boolean,
-  multiValued?: boolean,
+  key: string | symbol;
+  index?: string;
+  optional?: boolean;
+  multiValued?: boolean;
 };
 
 type DependencyQuery = DependencyDescriptor | string | symbol;
 
-type PackageJSON = {
+export type PackageJSON = {
   name: string;
   version: string;
+  type?: 'module' | 'commonjs';
   [key: string]: any;
 };
 
 type ModuleNamespace = {
-  [key: string]: any
-}
+  [key: string]: any | string;
+};
 
 type InterfaceFile = {
-  specifier: string
-  group: string
-  defaultExport: any
-  moduleNamespace: ModuleNamespace
+  specifier: string;
+  group: string;
+  defaultExport: any;
+  moduleNamespace: ModuleNamespace;
 };
 
 type SimpleDependencyProvider = (injector: Injector) => unknown;
 type MultiValuedDependencyProvider = Map<string, SimpleDependencyProvider>;
-type DependencyProvider = SimpleDependencyProvider | MultiValuedDependencyProvider;
+type DependencyProvider =
+  | SimpleDependencyProvider
+  | MultiValuedDependencyProvider;
 
 type SimpleProviderNode = {
-  key: string | symbol,
-  multiValued: false,
+  key: string | symbol;
+  multiValued: false;
 };
 
 type MultiValuedProviderNode = {
-  key: string | symbol,
-  multiValued: true,
-  indices: Map<string, SimpleProviderNode>,
+  key: string | symbol;
+  multiValued: true;
+  indices: Map<string, SimpleProviderNode>;
 };
 
 type ProviderNode = SimpleProviderNode | MultiValuedProviderNode;
 
 type ScopeNode = {
-  name: string,
-  providers: Map<string | symbol, ProviderNode>,
-  children: ScopeNode[],
+  name: string;
+  providers: Map<string | symbol, ProviderNode>;
+  children: ScopeNode[];
 };
 
 declare class Scope {
@@ -54,17 +57,27 @@ declare class Scope {
 
   readonly name: string;
 
-  setFactory<T>(query: string | symbol, deps: string[] | null, factory: (deps?: any) => T): void;
+  setFactory<T>(
+    query: string | symbol,
+    deps: string[] | null,
+    factory: (deps?: any) => T
+  ): void;
   setValue<T>(query: string | symbol, value: T): void;
 
   createInjector(init: Map<any, any>, parent?: Injector): Injector;
   getCachedInjector(target: object): Injector;
-  getCachedInjector(target: object, init: Map<any, any>, parent: Injector): Injector;
+  getCachedInjector(
+    target: object,
+    init: Map<any, any>,
+    parent: Injector
+  ): Injector;
   create<T>(key: string | symbol, injector: Injector): T;
 
   has(key: string | symbol): boolean;
   getKeys(): (string | symbol)[];
-  getOwnMultiValuedProviders(key: string | symbol): MultiValuedDependencyProvider;
+  getOwnMultiValuedProviders(
+    key: string | symbol
+  ): MultiValuedDependencyProvider;
 
   getProviderNodes(): Map<string | symbol, ProviderNode>;
 }
@@ -101,17 +114,17 @@ export class Project {
   readonly packageJson: PackageJSON;
   readonly root: string;
 
-  import(specifier: string): Promise<ModuleNamespace>;
-  importOrNull(specifier: string): Promise<ModuleNamespace>;
-  requireOrNull(specifier: string): any| Error;
+  import(specifier: string): Promise<ModuleNamespace | null> | Error;
+  importOrNull(specifier: string): Promise<ModuleNamespace | null> | Error;
+  requireOrNull(specifier: string): any | Error;
   requireBundled(specifier: string): any;
   requireOrBundled(specifier: string): any | Error;
   loadInterfaceFiles(basename: string): Promise<InterfaceFile[]>;
 }
 
 export type ScopeEntry =
-  [ 'singleton' | 'request' | 'action', string, any ] |
-  ((registry: Registry) => void);
+  | ['singleton' | 'request' | 'action', string, any]
+  | ((registry: Registry) => void);
 
 export class Registry {
   readonly singleton: Scope;
@@ -121,8 +134,15 @@ export class Registry {
   static from(decls: ScopeEntry[]): Registry;
 
   getSingletonInjector(): Injector;
-  getRequestInjector(request?: IncomingMessage, response?: ServerResponse): Injector;
-  getActionInjector(request?: IncomingMessage, response?: ServerResponse, action?: any): Injector;
+  getRequestInjector(
+    request?: IncomingMessage,
+    response?: ServerResponse
+  ): Injector;
+  getActionInjector(
+    request?: IncomingMessage,
+    response?: ServerResponse,
+    action?: any
+  ): Injector;
 
   getProviderGraph(): ScopeNode;
 }
@@ -131,7 +151,15 @@ type CommandConfig<OptionsType> = {
   name: string;
   description: string;
   init: (cmd: import('commander').Command) => void;
-  action: (app: App, options: OptionsType, ...args: any[]) => Promise<number | void>;
+  action: (
+    app: App,
+    options: OptionsType,
+    ...args: any[]
+  ) => Promise<number | void>;
 };
 
-export function main(app: App, defaultCommand?: string, argv?: string[]): Promise<void>;
+export function main(
+  app: App,
+  defaultCommand?: string,
+  argv?: string[]
+): Promise<void>;

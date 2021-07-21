@@ -10,7 +10,7 @@ const tmp = require('tmp');
 const { Project } = require('../');
 const { supportsESM } = require('./env');
 
-const { writeFiles, withNodeEnv } = require('./env');
+const { writeFiles } = require('./env');
 
 const FRAMEWORK_DIR = path.resolve(__dirname, '..');
 
@@ -89,21 +89,30 @@ describe('Project', () => {
 
       'exports-invalid1': {
         files: {
+          ...getEverywhereJS('exports-invalid1'),
           'node_modules/exports-invalid1/package.json': {
             exports: {
               '.': './something.js', // ./everywhere exports path is missing
             },
           },
         },
+        expected: {
+          defaultExport: 'from exports-invalid1',
+          group: 'exports-invalid1',
+          moduleNamespace: {
+            default: 'from exports-invalid1',
+          },
+          specifier: 'exports-invalid1/everywhere',
+        },
       },
       'exports-dep1': {
         files: {
+          ...getEverywhereJS('exports-dep1'),
           'node_modules/exports-dep1/package.json': {
             exports: {
               './everywhere': './everywhere.js', // valid exports path
             },
           },
-          ...getEverywhereJS('exports-dep1'),
         },
         expected: {
           defaultExport: 'from exports-dep1',
@@ -183,37 +192,63 @@ module.exports = () => {return 'from lib1'};
       writeFiles(files, tmpHandle);
     });
 
-    describe('project.loadInterfaceFiles', () => {
+    describe('project.loadInterfaceFiles()', () => {
       it('returns an empty set if there are no interface files', async () => {
         sortedEqual(await project.loadInterfaceFiles('no-such-files'), []);
       });
 
-      withNodeEnv('production', () => {
+      describe('with process.env.NODE_ENV=production', () => {
+        before(() => {
+          process.env.NODE_ENV = 'production';
+        });
+        after(() => {
+          process.env.NODE_ENV = 'test';
+        });
+
         it('omits dev deps', async () => {
           sortedEqual(await project.loadInterfaceFiles('everywhere'), [
             cases['lib1'].expected,
             cases['@some-scope/pkg1'].expected,
             cases['exports-dep1'].expected,
+            cases['exports-invalid1'].expected,
           ]);
         });
       });
 
-      withNodeEnv('any-env', () => {
+      describe('with process.env.NODE_ENV=development', () => {
+        before(() => {
+          process.env.NODE_ENV = 'development';
+        });
+        after(() => {
+          process.env.NODE_ENV = 'test';
+        });
+
         it('includes dev deps', async () => {
           sortedEqual(await project.loadInterfaceFiles('everywhere'), [
             cases['lib1'].expected,
             cases['@some-scope/pkg1'].expected,
             cases['dev-dep1'].expected,
             cases['exports-dep1'].expected,
+            cases['exports-invalid1'].expected,
           ]);
         });
 
-        it('omits packages with exports section not exporting requested path', async () => {
+        it('is able to load packages with exports section not exporting requested path', async () => {
           const res = await project.loadInterfaceFiles('everywhere');
           assert.ok(
-            res.every(
-              ({ defaultExport }) => !defaultExport.includes('exports-invalid1')
+            res.find(({ defaultExport }) =>
+              defaultExport.includes('exports-invalid1')
             )
+          );
+        });
+
+        it(`doesn't throw when import throws ERR_PACKAGE_PATH_NOT_EXPORTED and module.require throws MODULE_NOT_FOUND`, async function () {
+          if (!hasESMSupport) {
+            this.skip();
+          }
+
+          await assert.doesNotReject(() =>
+            project.loadInterfaceFiles('exports-invalid1/missing')
           );
         });
 
@@ -228,7 +263,7 @@ module.exports = () => {return 'from lib1'};
       });
     });
 
-    describe('project.requireOrNull', () => {
+    describe('project.requireOrNull()', () => {
       it(`returns file handle for valid module`, async () => {
         assert.strictEqual(
           project.requireOrNull('@some-scope/pkg1/everywhere'),
@@ -236,13 +271,22 @@ module.exports = () => {return 'from lib1'};
         );
       });
 
-      it(`doesn't throw when require throws ERR_PACKAGE_PATH_NOT_EXPORTED`, async function () {
+      it(`falls back to direct module.require when ERR_PACKAGE_PATH_NOT_EXPORTED occurs`, async function () {
+        if (!hasESMSupport) {
+          this.skip();
+        }
+
+        const res = project.requireOrNull('exports-invalid1/everywhere');
+        assert.strictEqual(res, 'from exports-invalid1');
+      });
+
+      it(`doesn't throw when require throws ERR_PACKAGE_PATH_NOT_EXPORTED and module.require throws MODULE_NOT_FOUND`, async function () {
         if (!hasESMSupport) {
           this.skip();
         }
 
         assert.doesNotThrow(() => {
-          const res = project.requireOrNull('exports-invalid1/everywhere');
+          const res = project.requireOrNull('exports-invalid1/missing');
           assert.strictEqual(res, null);
         });
       });
@@ -255,7 +299,7 @@ module.exports = () => {return 'from lib1'};
       });
     });
 
-    describe('project.requireOrBundled', () => {
+    describe('project.requireOrBundled()', () => {
       it(`returns file handle for valid module`, async () => {
         assert.strictEqual(
           project.requireOrBundled('@some-scope/pkg1/everywhere'),
@@ -264,7 +308,7 @@ module.exports = () => {return 'from lib1'};
       });
 
       it(`will throw when files don't exist`, async () => {
-        ['exports-invalid1/everywhere', '@some-scope/pkg1/something'].forEach(
+        ['exports-invalid1/missing', '@some-scope/pkg1/something'].forEach(
           file => {
             if (file.includes('exports-invalid1') && !hasESMSupport) {
               return;
@@ -278,7 +322,7 @@ module.exports = () => {return 'from lib1'};
       });
     });
 
-    describe('project.import', () => {
+    describe('project.import()', () => {
       it(`returns file handle for valid module`, async () => {
         assert.deepStrictEqual(
           await project.import('@some-scope/pkg1/everywhere'),
@@ -308,119 +352,76 @@ module.exports = () => {return 'from lib1'};
   });
 
   describe('ESM handling', () => {
-    const mjs_cases = {
-      default_local: {
-        files: {
-          './modules/default_local/everywhere.mjs': `\
-export default 'from default_local';
+    describe('local files', () => {
+      const cases = {
+        mjs_default_local: {
+          files: {
+            './modules/mjs_default_local/everywhere.mjs': `\
+export default 'from mjs_default_local';
 `,
-        },
-        expected: {
-          specifier: './modules/default_local/everywhere.mjs',
-          group: 'default_local',
-          moduleNamespace: {
-            default: 'from default_local',
           },
-          defaultExport: 'from default_local',
-        },
-      },
-
-      no_default_local: {
-        files: {
-          './modules/no_default_local/everywhere.mjs': `\
-export const namedExport = 'forwarded';
-`,
-        },
-        expected: {
-          specifier: './modules/no_default_local/everywhere.mjs',
-          group: 'no_default_local',
-          moduleNamespace: {
-            namedExport: 'forwarded',
-          },
-          defaultExport: undefined,
-        },
-      },
-
-      es_module_local: {
-        files: {
-          './modules/es_module_local/everywhere.js': `\
-export const namedExport = 'forwarded';
-export default 'from default_local';
-`,
-        },
-        expected: {
-          specifier: './modules/es_module_local/everywhere.js',
-          group: 'es_module_local',
-          moduleNamespace: {
-            namedExport: 'forwarded',
-            default: 'from default_local',
-          },
-          defaultExport: 'from default_local',
-        },
-      },
-
-      npm_exports: {
-        FIXME: 'not working yet',
-        files: {
-          './node_modules/npm_exports/package.json': {
-            name: 'npm_exports',
-            exports: {
-              '.': './everywhere.mjs',
-              './everywhere': './everywhere.mjs',
+          expected: {
+            specifier: './modules/mjs_default_local/everywhere.mjs',
+            group: 'mjs_default_local',
+            moduleNamespace: {
+              default: 'from mjs_default_local',
             },
+            defaultExport: 'from mjs_default_local',
           },
-          './node_modules/npm_exports/everywhere.mjs': `\
-      export const namedExport = 'forwarded';
-      `,
         },
-        expected: {
-          specifier: './node_modules/npm_exports/everywhere.mjs',
-          group: 'npm_exports',
-          moduleNamespace: {
-            namedExport: 'forwarded',
-          },
-          defaultExport: undefined,
-        },
-      },
 
-      npm_type_module: {
-        FIXME: 'not working yet',
-        files: {
-          './node_modules/npm_type_module/package.json': { type: 'module' },
-          './node_modules/npm_type_module/everywhere.js': `\
-      export const namedExport = 'forwarded';
-      `,
-        },
-        expected: {
-          specifier: './node_modules/npm_type_module/everywhere.js',
-          group: 'npm_type_module',
-          moduleNamespace: {
-            namedExport: 'forwarded',
+        mjs_named_local: {
+          files: {
+            './modules/mjs_named_local/everywhere.mjs': `\
+export const namedExport = 'forwarded';
+`,
           },
-          defaultExport: undefined,
+          expected: {
+            specifier: './modules/mjs_named_local/everywhere.mjs',
+            group: 'mjs_named_local',
+            moduleNamespace: {
+              namedExport: 'forwarded',
+            },
+            defaultExport: undefined,
+          },
         },
-      },
 
-      cjs_module_local: {
-        FIXME: 'not working yet',
-        files: {
-          'lib/cjs_module_local/everywhere.cjs': `\
+        esm_mixed_local: {
+          files: {
+            './modules/esm_mixed_local/everywhere.js': `\
+export const namedExport = 'forwarded';
+export default 'from esm_mixed_local';
+`,
+          },
+          expected: {
+            specifier: './modules/esm_mixed_local/everywhere.js',
+            group: 'esm_mixed_local',
+            moduleNamespace: {
+              namedExport: 'forwarded',
+              default: 'from esm_mixed_local',
+            },
+            defaultExport: 'from esm_mixed_local',
+          },
+        },
+
+        cjs_module_local: {
+          files: {
+            'lib/cjs_module_local/everywhere.cjs': `\
 'use strict';
 
 module.exports = 'from cjs_module_local';
 `,
+          },
+          expected: {
+            specifier: './lib/cjs_module_local/everywhere.cjs',
+            group: 'cjs_module_local',
+            moduleNamespace: { default: 'from cjs_module_local' },
+            defaultExport: 'from cjs_module_local',
+          },
         },
-        expected: {
-          specifier: './lib/cjs_module_local/everywhere.cjs',
-          group: 'cjs_module_local',
-          moduleNamespace: { default: 'from cjs_module_local' },
-          defaultExport: 'from cjs_module_local',
-        },
-      },
-    };
+      };
 
-    describe('local', () => {
-      it('loads local ESM files', async function () {
+      it('loads mjs', async function () {
         if (!hasESMSupport) {
           console.log('ESM not supported. Skipping test');
           this.skip();
@@ -434,41 +435,309 @@ module.exports = 'from cjs_module_local';
             },
             devDependencies: {},
           },
-          './modules/package.json': {
-            type: 'modules',
-          },
-          ...mjs_cases['default_local'].files,
-          ...mjs_cases['no_default_local'].files,
+          ...cases['mjs_default_local'].files,
+          ...cases['mjs_named_local'].files,
         };
 
         writeFiles(files, tmpHandle);
 
         sortedEqual(await project.loadInterfaceFiles('everywhere'), [
-          mjs_cases['default_local'].expected,
-          mjs_cases['no_default_local'].expected,
+          cases['mjs_default_local'].expected,
+          cases['mjs_named_local'].expected,
         ]);
       });
 
-      // this fails in Node 10 / legacy ESM implementation
-      // right now the globbing pattern in `lib/project.js` doesn't include cjs
-      it.skip('loads local ESM files w/ project type=module', async function () {
-        if (!hasESMSupport) {
+      it('loads js and cjs w/ project type=module ', async function () {
+        // this fails in Node 10 / legacy ESM implementation
+        if (!(hasESMSupport && hasCJSSupport)) {
           console.log('ESM not supported. Skipping test');
           this.skip();
         }
 
         const files = {
           'package.json': { type: 'module' },
-          ...mjs_cases['es_module_local'].files,
-          ...(hasCJSSupport && mjs_cases['cjs_module_local'].files),
+          ...cases['esm_mixed_local'].files,
+          ...(hasCJSSupport && cases['cjs_module_local'].files),
         };
 
         writeFiles(files, tmpHandle);
 
         sortedEqual(await project.loadInterfaceFiles('everywhere'), [
-          mjs_cases['es_module_local'].expected,
-          ...(hasCJSSupport ? [mjs_cases['cjs_module_local'].expected] : []),
+          cases['esm_mixed_local'].expected,
+          ...(hasCJSSupport ? [cases['cjs_module_local'].expected] : []),
         ]);
+      });
+    });
+
+    describe('from package', () => {
+      describe('type=commonjs', () => {
+        const cases = {
+          mjs: {
+            files: {
+              './node_modules/mjs/package.json': {},
+              './node_modules/mjs/everywhere.mjs': `\
+      export const namedExport = 'forwarded';
+      `,
+              './node_modules/mjs/everywhere.js': `\
+      exports.namedExport = 'forwarded';
+      `,
+            },
+            expected: {
+              specifier: 'mjs/everywhere',
+              group: 'mjs',
+              moduleNamespace: {
+                namedExport: 'forwarded',
+              },
+              defaultExport: undefined,
+            },
+          },
+          mjs_with_exports: {
+            files: {
+              './node_modules/mjs_with_exports/package.json': {
+                exports: {
+                  './everywhere': './everywhere.mjs',
+                },
+              },
+              './node_modules/mjs_with_exports/everywhere.mjs': `\
+      export const namedExport = 'forwarded';
+      `,
+              './node_modules/mjs_with_exports/everywhere.js': `\
+      exports.namedExport = 'forwarded';
+      `,
+            },
+            expected: {
+              specifier: 'mjs_with_exports/everywhere',
+              group: 'mjs_with_exports',
+              moduleNamespace: {
+                namedExport: 'forwarded',
+              },
+              defaultExport: undefined,
+            },
+          },
+          mjs_with_invalid_exports: {
+            files: {
+              './node_modules/mjs_with_invalid_exports/package.json': {
+                exports: {
+                  './nowhere': './nowhere.mjs',
+                },
+              },
+              './node_modules/mjs_with_invalid_exports/everywhere.mjs': `\
+      export const namedExport = 'forwarded';
+      `,
+              './node_modules/mjs_with_invalid_exports/everywhere.js': `\
+      exports.namedExport = 'forwarded';
+      `,
+            },
+            expected: {
+              specifier: 'mjs_with_invalid_exports/everywhere',
+              group: 'mjs_with_invalid_exports',
+              moduleNamespace: {
+                namedExport: 'forwarded',
+              },
+              defaultExport: undefined,
+            },
+          },
+        };
+
+        beforeEach(() => {
+          const files = {
+            'package.json': {
+              dependencies: {
+                mjs: '*',
+                mjs_with_exports: '*',
+                mjs_with_invalid_exports: '*',
+              },
+              devDependencies: {},
+            },
+            ...cases['mjs'].files,
+            ...cases['mjs_with_exports'].files,
+            ...cases['mjs_with_invalid_exports'].files,
+          };
+
+          writeFiles(files, tmpHandle);
+        });
+
+        it('loads mjs with general file request', async function () {
+          if (!hasESMSupport) {
+            console.log('ESM not supported. Skipping test');
+            this.skip();
+          }
+
+          const expected = [
+            cases['mjs'].expected,
+            cases['mjs_with_exports'].expected,
+            cases['mjs_with_invalid_exports'].expected,
+          ];
+
+          const res = await project.loadInterfaceFiles('everywhere');
+          sortedEqual(res, expected);
+        });
+
+        it('loads mjs with explicit file request', async function () {
+          if (!hasESMSupport) {
+            console.log('ESM not supported. Skipping test');
+            this.skip();
+          }
+
+          const rawExpected = [
+            cases['mjs'].expected,
+            cases['mjs_with_exports'].expected,
+            cases['mjs_with_invalid_exports'].expected,
+          ];
+
+          for (const ext of ['mjs', 'js']) {
+            const expected = [...rawExpected].map(item => {
+              item = { ...item };
+              item.specifier = `${item.specifier}.${ext}`;
+              if (ext === 'js') {
+                item.defaultExport = { namedExport: 'forwarded' };
+                item.moduleNamespace = { default: item.moduleNamespace };
+              }
+              return item;
+            });
+
+            const res = await project.loadInterfaceFiles(`everywhere.${ext}`);
+            sortedEqual(res, expected);
+          }
+        });
+      });
+
+      describe('type=module', () => {
+        const cases = {
+          esm: {
+            files: {
+              './node_modules/esm/package.json': { type: 'module' },
+              './node_modules/esm/everywhere.js': `\
+      export const namedExport = 'forwarded';
+      `,
+              './node_modules/esm/everywhere.cjs': `\
+      exports.namedExport = 'forwarded';
+      `,
+            },
+            expected: {
+              specifier: 'esm/everywhere',
+              group: 'esm',
+              moduleNamespace: {
+                namedExport: 'forwarded',
+              },
+              defaultExport: undefined,
+            },
+          },
+          esm_with_export: {
+            files: {
+              './node_modules/esm_with_export/package.json': {
+                type: 'module',
+                exports: {
+                  './everywhere': {
+                    import: './everywhere.js',
+                    require: './everywhere.cjs',
+                  },
+                },
+              },
+              './node_modules/esm_with_export/everywhere.js': `\
+      export const namedExport = 'forwarded';
+      `,
+              './node_modules/esm_with_export/everywhere.cjs': `\
+      exports.namedExport = 'forwarded';
+      `,
+            },
+            expected: {
+              specifier: 'esm_with_export/everywhere',
+              group: 'esm_with_export',
+              moduleNamespace: {
+                namedExport: 'forwarded',
+              },
+              defaultExport: undefined,
+            },
+          },
+          esm_with_invalid_export: {
+            files: {
+              './node_modules/esm_with_invalid_export/package.json': {
+                type: 'module',
+                exports: {
+                  './nowhere': './nowhere.js',
+                },
+              },
+              './node_modules/esm_with_invalid_export/everywhere.js': `\
+      export const namedExport = 'forwarded';
+      `,
+              './node_modules/esm_with_invalid_export/everywhere.cjs': `\
+      exports.namedExport = 'forwarded';
+      `,
+            },
+            expected: {
+              specifier: 'esm_with_invalid_export/everywhere',
+              group: 'esm_with_invalid_export',
+              moduleNamespace: {
+                namedExport: 'forwarded',
+              },
+              defaultExport: undefined,
+            },
+          },
+        };
+
+        beforeEach(() => {
+          const files = {
+            'package.json': {
+              type: 'module',
+              dependencies: {
+                esm: '*',
+                esm_with_export: '*',
+                esm_with_invalid_export: '*',
+              },
+            },
+            ...cases['esm'].files,
+            ...cases['esm_with_export'].files,
+            ...cases['esm_with_invalid_export'].files,
+          };
+
+          writeFiles(files, tmpHandle);
+        });
+
+        it('loads js and cjs', async function () {
+          // this fails in Node 10 / legacy ESM implementation
+          if (!(hasESMSupport && hasCJSSupport)) {
+            console.log('ESM not supported. Skipping test');
+            this.skip();
+          }
+
+          const expected = [
+            cases['esm'].expected,
+            cases['esm_with_export'].expected,
+            cases['esm_with_invalid_export'].expected,
+          ];
+          const res = await project.loadInterfaceFiles('everywhere');
+
+          sortedEqual(res, expected);
+        });
+
+        it('loads js and cjs with explicit file request', async function () {
+          // this fails in Node 10 / legacy ESM implementation
+          if (!(hasESMSupport && hasCJSSupport)) {
+            console.log('ESM not supported. Skipping test');
+            this.skip();
+          }
+          const rawExpected = [
+            cases['esm'].expected,
+            cases['esm_with_export'].expected,
+            cases['esm_with_invalid_export'].expected,
+          ];
+
+          for (const ext of ['js', 'cjs']) {
+            const expected = [...rawExpected].map(item => {
+              item = { ...item };
+              item.specifier = `${item.specifier}.${ext}`;
+              if (ext === 'cjs') {
+                item.defaultExport = { namedExport: 'forwarded' };
+                item.moduleNamespace = { default: item.moduleNamespace };
+              }
+              return item;
+            });
+
+            const res = await project.loadInterfaceFiles(`everywhere.${ext}`);
+            sortedEqual(res, expected);
+          }
+        });
       });
     });
   });
