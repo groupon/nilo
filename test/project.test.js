@@ -352,6 +352,15 @@ module.exports = () => {return 'from lib1'};
   });
 
   describe('ESM handling', () => {
+    before(function () {
+      if (!hasCJSSupport) {
+        console.log(
+          'Test will likely throw a Segmentation fault (core dumped) in Node 10. Skipping tests.'
+        );
+        this.skip();
+      }
+    });
+
     describe('local files', () => {
       const cases = {
         mjs_default_local: {
@@ -421,12 +430,7 @@ module.exports = 'from cjs_module_local';
         },
       };
 
-      it('loads mjs', async function () {
-        if (!hasESMSupport) {
-          console.log('ESM not supported. Skipping test');
-          this.skip();
-        }
-
+      it('loads mjs', async () => {
         const files = {
           'package.json': {
             type: 'modules',
@@ -447,13 +451,7 @@ module.exports = 'from cjs_module_local';
         ]);
       });
 
-      it('loads js and cjs w/ project type=module ', async function () {
-        // this fails in Node 10 / legacy ESM implementation
-        if (!(hasESMSupport && hasCJSSupport)) {
-          console.log('ESM not supported. Skipping test');
-          this.skip();
-        }
-
+      it('loads js and cjs w/ project type=module ', async () => {
         const files = {
           'package.json': { type: 'module' },
           ...cases['esm_mixed_local'].files,
@@ -557,12 +555,7 @@ module.exports = 'from cjs_module_local';
           writeFiles(files, tmpHandle);
         });
 
-        it('loads mjs with general file request', async function () {
-          if (!hasESMSupport) {
-            console.log('ESM not supported. Skipping test');
-            this.skip();
-          }
-
+        it('loads mjs with general file request', async () => {
           const expected = [
             cases['mjs'].expected,
             cases['mjs_with_exports'].expected,
@@ -573,12 +566,7 @@ module.exports = 'from cjs_module_local';
           sortedEqual(res, expected);
         });
 
-        it('loads mjs with explicit file request', async function () {
-          if (!hasESMSupport) {
-            console.log('ESM not supported. Skipping test');
-            this.skip();
-          }
-
+        it('loads mjs with explicit file request', async () => {
           const rawExpected = [
             cases['mjs'].expected,
             cases['mjs_with_exports'].expected,
@@ -694,13 +682,7 @@ module.exports = 'from cjs_module_local';
           writeFiles(files, tmpHandle);
         });
 
-        it('loads js and cjs', async function () {
-          // this fails in Node 10 / legacy ESM implementation
-          if (!(hasESMSupport && hasCJSSupport)) {
-            console.log('ESM not supported. Skipping test');
-            this.skip();
-          }
-
+        it('loads js and cjs', async () => {
           const expected = [
             cases['esm'].expected,
             cases['esm_with_export'].expected,
@@ -711,12 +693,7 @@ module.exports = 'from cjs_module_local';
           sortedEqual(res, expected);
         });
 
-        it('loads js and cjs with explicit file request', async function () {
-          // this fails in Node 10 / legacy ESM implementation
-          if (!(hasESMSupport && hasCJSSupport)) {
-            console.log('ESM not supported. Skipping test');
-            this.skip();
-          }
+        it('loads js and cjs with explicit file request', async () => {
           const rawExpected = [
             cases['esm'].expected,
             cases['esm_with_export'].expected,
