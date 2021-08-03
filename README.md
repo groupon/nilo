@@ -1,6 +1,7 @@
-[![nlm-github](https://img.shields.io/badge/github-groupon%2Fnilo%2Fissues-F4D03F?logo=github&logoColor=white)](https://github.com/groupon/nilo/issues)
-![nlm-node](https://img.shields.io/badge/node-%3E%3D10.13-blue?logo=node.js&logoColor=white)
+[![CI](https://github.com/groupon/nilo/actions/workflows/node.js.yml/badge.svg)](https://github.com/groupon/nilo/actions/workflows/node.js.yml)
 ![nlm-version](https://img.shields.io/badge/version-4.0.10-blue?logo=version&logoColor=white)
+![nlm-node](https://img.shields.io/badge/node-%3E%3D10.13-blue?logo=node.js&logoColor=white)
+[![nlm-github](https://img.shields.io/badge/github-groupon%2Fnilo%2Fissues-F4D03F?logo=github&logoColor=white)](https://github.com/groupon/nilo/issues)
 # `nilo` ("ex nihilo")
 
 > Ex nihilo is a Latin phrase meaning "out of nothing".
