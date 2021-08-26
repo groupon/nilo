@@ -1,3 +1,10 @@
+### v4.0.11 (2021-08-26)
+<a id="v4.0.11"></a>
+#### 🐛 Bug Fixes
+
+* [#26](https://github.com/groupon/nilo/pull/26) fix(support): support ESM packages & cjs file type ([@aaarichter](https://github.com/aaarichter))
+
+
 ### v4.0.10 (2021-06-04)
 <a id="v4.0.10"></a>
 #### 🏡 Internal
