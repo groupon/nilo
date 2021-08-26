@@ -41,22 +41,6 @@ const mkdirp = require('mkdirp');
 const importESM = require('../../lib/esm/import');
 
 /**
- * @param {string} nodeEnv
- * @param {() => void} fn
- */
-exports.withNodeEnv = function withNodeEnv(nodeEnv, fn) {
-  describe(`with NODE_ENV=${nodeEnv}`, () => {
-    before(() => {
-      process.env.NODE_ENV = nodeEnv;
-    });
-    after(() => {
-      process.env.NODE_ENV = 'test';
-    });
-    fn();
-  });
-};
-
-/**
  *
  * @param {Object} files
  * @param {Object} tmpHandle
